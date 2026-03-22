@@ -1,0 +1,390 @@
+# Documentation for Teledyne available at https://drive.google.com/file/d/1xniDtjYIJhaFOhWaSj4tj6RxBdN5inx2/view
+# See page 93 for specs
+
+import rospy
+import math
+import signal
+import threading
+import time
+import json
+
+import numpy as np
+
+import csv
+from datetime import datetime
+
+import serial
+from geometry_msgs.msg import TwistStamped
+
+from auv.device.dvl import dvl_tcp_parser
+from auv.utils import deviceHelper
+
+
+class DVL:
+    """DVL class to enable position estimation"""
+    
+    def __init__(self, autostart=True, test=False):
+        rospy.init_node("dvl", anonymous=True)
+        self.rate = rospy.Rate(10)  # 10 Hz
+        
+        self.vel_pub = rospy.Publisher('/auv/devices/dvl/velocity', TwistStamped, queue_size=10)
+        
+        self.test = test
+        if not self.test:
+            self.dvlPort = deviceHelper.dataFromConfig("dvl")
+            print(self.dvlPort)
+            self.sub = deviceHelper.variables.get("sub")
+            print(f"[DEBUG] Sub is {self.sub}")
+            if self.sub == "onyx":
+                self.ser = serial.Serial(
+                    port=self.dvlPort,
+                    baudrate=115200,
+                    parity=serial.PARITY_NONE,
+                    stopbits=serial.STOPBITS_ONE,
+                    bytesize=serial.EIGHTBITS,
+                )
+
+                self.dvl_rot = math.radians(45)
+                self.ser.isOpen()
+                self.ser.reset_input_buffer()
+                self.ser.send_break()
+                time.sleep(1)
+                startPing = "CS"
+                self.ser.write(startPing.encode())
+                time.sleep(2)
+                self.read = self.read_onyx
+
+            elif self.sub == "graey":
+                # autostart = False
+                self.read = self.read_graey
+                self.dvl_rot = math.radians(0)
+            else:
+                raise ValueError(f"Invalid sub {self.sub}")
+
+        self.__running = False
+        self.__thread_vel = None
+        self.prev_time = None
+        self.current_time = None
+        
+        self.error = [0, 0, 0]  # accumulated error
+        self.dvl_scale_factor = deviceHelper.variables.get("DVL_SCALE_FACTOR", 1)
+        self.vel = [0, 0, 0]  
+        self.onyx_dvl_orientation_offset = deviceHelper.variables.get("DVL_ORIENTATION_OFFSET", 0) # degrees | need to spin ccw 49.55 degrees
+        self.is_valid = False
+        self.data_available = False
+
+        # stores error history for context manager
+        self.error_memory = []
+
+        # DVL data packet. Must put this in __init__ to allow for the
+        # time to accumulate in read_graey
+        self.graey_data = {
+            "time": 0,  # seconds
+            "vx": 0,  # m/s
+            "vy": 0,  # m/s
+            "vz": 0,  # m/s
+            "error": 0, # m/s - is placeholder for dynamic value
+            "valid": False,  # boolean
+            }
+
+        if autostart:
+            self.start()
+
+    def __parseLine(self, line):
+        """Parse line"""
+        return line.decode("utf-8").replace(" ", "").replace("\r\n", "").split(",")
+
+    def read_graey(self):
+        """Get velocity from graey"""
+
+        # Useful documentation for JSON strings: 
+        # https://www.geeksforgeeks.org/convert-json-to-dictionary-in-python/
+
+        # On Graey run python3 -m (filepath) velocity -i 192.168.2.10
+        try:
+            data_iterator = dvl_tcp_parser.main()
+            for line in data_iterator:
+                line = json.loads(line)
+
+                # In Graey, x-axis is forward and y-axis is lateral,
+                # to be consistent w/ Onyx we will switch them here
+                self.graey_data["time"] += float(line["time"]) / 1000
+                self.graey_data["vx"] = float(line["vy"]) * self.dvl_scale_factor
+                self.graey_data["vy"] = float(line["vx"]) * self.dvl_scale_factor
+                self.graey_data["vz"] = float(line["vz"]) * self.dvl_scale_factor
+                self.graey_data["error"] = float(line["fom"])
+                self.graey_data["valid"] = line["velocity_valid"]
+                return self.graey_data
+        except:
+            print("I threw an exception!")
+            data = None
+        return data
+
+    def read_onyx(self):
+        """Get velocity from onyx"""
+
+        while not self.ser.in_waiting:
+            # take a nap :)
+            time.sleep(0.01)
+            # print("[DEBUG] Serial is not working!!!")
+
+        data = {
+            "time": 0,  # seconds
+            "vx": 0,  # m/s
+            "vy": 0,  # m/s
+            "vz": 0,  # m/s
+            "error": 0.002, # m/s - see Teledyne Documentation note above
+            "valid": False,  # boolean
+        }
+        SA = self.__parseLine(self.ser.readline())
+        if SA[0] != ":SA":
+            return None
+
+        TS = self.__parseLine(self.ser.readline())
+        WI = self.__parseLine(self.ser.readline()) # unused
+        BI = self.__parseLine(self.ser.readline())
+        WS = self.__parseLine(self.ser.readline()) # unused
+        BS = self.__parseLine(self.ser.readline())
+        WE = self.__parseLine(self.ser.readline()) # unused
+        BE = self.__parseLine(self.ser.readline())  # unused
+        WD = self.__parseLine(self.ser.readline()) # unused
+        BD = self.__parseLine(self.ser.readline())
+
+
+        try:
+            # data["Attitude"] = [float(SA[1]), float(SA[2]), float(SA[3])]
+            # data["Salinity"] = float(TS[2])
+            # data["Temp"] = float(TS[3])
+            # data["Transducer_depth"] = float(TS[4])
+            # data["Speed_of_sound"] = float(TS[5])
+            # data["Result_code"] = TS[6]
+            # data["DVL_velocity"] = [int(BI[1]), int(BI[2]), int(BI[3]), int(BI[4])]
+            # data["isDVL_velocity_valid"] = BI[5] == "A"
+            # data["AUV_velocity"] = [int(BS[1]), int(BS[2]), int(BS[3])]
+            # data["isAUV_velocity_valid"] = BS[4] == "A"
+            # data["Distance_from_bottom"] = float(BD[4])
+            # data["Time_since_valid"] = float(BD[5])
+
+            centi = int(TS[1][12:14]) * 0.01
+            seconds = int(TS[1][10:12])
+            minutes = int(TS[1][8:10]) * 60
+            hours = int(TS[1][6:8]) * 60 * 60
+            t = hours + minutes + seconds + centi
+
+            # raw vx, vy, vz in dvl frame
+            vx = int(BS[1]) / 1000
+            vy = int(BS[2]) / 1000
+            vz = int(BS[3]) / 1000
+
+            # apply scale factor
+            vx *= self.dvl_scale_factor
+            vy *= self.dvl_scale_factor
+            vz *= self.dvl_scale_factor
+
+            # Apply rotation
+            cos_t = np.cos(self.onyx_dvl_orientation_offset)
+            sin_t = np.sin(self.onyx_dvl_orientation_offset)
+
+            vx_body = cos_t * vx - sin_t * vy
+            vy_body = cos_t * vy + sin_t * vx
+            # this is the only data we need
+            data["time"] = t
+            # convert dvl frame to onyx body frame
+            data["vx"] = vx_body
+            data["vy"] = vy_body 
+            data["vz"] = vz
+            data["valid"] = BS[4] == "A"
+
+            
+
+
+            # apply simple filtering
+            if abs(data["vx"]) > 10 or abs(data["vy"]) > 10 or abs(data["vz"]) > 10:
+                data = None
+                
+
+        except Exception as e:
+            rospy.logerr(f"Error while reading onyx dvl data")
+            rospy.logerr(e)
+            data = None
+            
+        return data
+
+    def process_packet(self, packet):
+        """Integrate velocity into position without compass"""
+
+        self.vel = [packet.get("vx", 0), packet.get("vy", 0), packet.get("vz", 0)]
+        self.current_time = packet.get("time", 0)  # seconds
+        self.dvl_error = packet.get("error", 0)
+
+        if self.prev_time is None:
+            self.prev_time = self.current_time
+            rospy.logwarn("DVL not ready, waiting for some more sample")
+            return False
+
+        dt = self.current_time - self.prev_time
+        if dt < 0:
+            rospy.logwarn("DVL time error, skipping")
+            return False
+
+        self.is_valid = packet["valid"]
+        if not self.is_valid:
+            return False
+
+
+        self.prev_time = self.current_time
+
+        vel_error = [
+            self.vel[0] + self.dvl_error,
+            self.vel[1] + self.dvl_error,
+            self.vel[2] + self.dvl_error,
+        ]
+
+        # calculate accumulated error
+        self.error = [
+            self.error[0] + abs(self.vel[0] - vel_error[0]) * dt,
+            self.error[1] + abs(self.vel[1] - vel_error[1]) * dt,
+            self.error[2] + abs(self.vel[2] - vel_error[2]) * dt,
+        ]
+
+        return True
+
+    def update(self): 
+        """Update DVL data (runs in a thread)"""
+        rospy.loginfo("DVL update() loop started")
+
+        while self.__running and not rospy.is_shutdown():
+            vel_packet = self.read()
+
+            if vel_packet is None:
+                continue
+
+
+            ret = self.process_packet(vel_packet)
+
+            self.data_available = ret
+            self.rate.sleep()
+
+    def publish_dvl(self, frame_id: str):
+        """Publish DVL data to rostopics
+        Args:
+            - frame_id (str): Frame ID containing name of AUV"""
+        while not rospy.is_shutdown():
+            now = rospy.Time.now()
+            vel_msg = TwistStamped()
+            vel_msg.header.stamp = now
+            vel_msg.header.frame_id = frame_id
+
+            vel_msg.twist.linear.x = self.vel[0]
+            vel_msg.twist.linear.y = self.vel[1]
+            vel_msg.twist.linear.z = self.vel[2]
+            vel_msg.twist.angular.x = 0.0
+            vel_msg.twist.angular.y = 0.0
+            vel_msg.twist.angular.z = 0.0
+
+            self.vel_pub.publish(vel_msg)
+            self.rate.sleep()
+    
+    def start(self):
+        # ensure not running
+        rospy.loginfo("Started successfully")
+        if self.__running:
+            rospy.logwarn("DVL already running")
+            return
+
+        self.__running = True
+        self.__thread_vel = threading.Thread(target=self.update, daemon=True)
+        self.__thread_vel.start()
+
+        # Add publisher thread depending on sub
+        if self.sub == "graey":
+            self.__thread_pub = threading.Thread(target=self.publish_dvl, args=("base_link",), daemon=True)
+        elif self.sub == "onyx":
+            self.__thread_pub = threading.Thread(target=self.publish_dvl, args=("base_link",) , daemon=True)
+
+        else:
+            raise ValueError(f"[ERROR] Unknown sub: {self.sub}")
+
+        self.__thread_pub.start()
+
+    def stop(self):
+        self.__running = False
+        self.__thread_vel.join()
+
+    def __enter__(self):
+        """Context manager for DVL"""
+        if not self.__running and not self.test:
+            self.start()
+
+        # begin a context, store current position
+        self.position_memory.append(self.position)
+        self.error_memory.append(self.error)
+
+        # reset position
+        self.reset_position()
+
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Exit context manager"""
+        prev_error = self.error_memory.pop()
+
+        self.error = [
+            self.error[0] + prev_error[0],
+            self.error[1] + prev_error[1],
+            self.error[2] + prev_error[2],
+        ]
+
+def csvLog(dvl, filename="dvl_log.csv"):
+        """
+        Logs DVL position and velocity data to a CSV file.
+        """
+        with open(filename, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Time (s)", "vx (m/s)", "vy (m/s)", "vz (m/s)", "X (m)", "Y (m)", "Z (m)", "Valid"])
+
+            try:
+                while True:
+                    time.sleep(0.1)  # sampling delay
+                    vel_packet = dvl.read()
+                    if vel_packet is None or not vel_packet["valid"]:
+                        continue
+
+                    if dvl.enable_compass:
+                        dvl.process_packet_compass(vel_packet)
+                    else:
+                        dvl.process_packet(vel_packet)
+
+                    row = [
+                        dvl.current_time,
+                        vel_packet["vx"],
+                        vel_packet["vy"],
+                        vel_packet["vz"],
+                        dvl.position[0],
+                        dvl.position[1],
+                        dvl.position[2],
+                        vel_packet["valid"],
+                    ]
+                    writer.writerow(row)
+                    print(f"[LOGGING] {row}")
+
+            except KeyboardInterrupt:
+                print("\n[INFO] Logging interrupted. Saving CSV file...")
+                print(f"[INFO] Data saved to {filename}")
+if __name__ == '__main__':
+    # Make a new dvl instance
+    try:
+        dvl1 = DVL()
+        dvl1.start()
+        # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # filename = f"dvl_log_{timestamp}.csv"
+        # csvLog(dvl1, filename)
+        rospy.spin()
+    
+    except KeyboardInterrupt:
+        print("\n[INFO] DVL stopped by user.")
+        dvl1.stop()
+        rospy.shutdown()
+        
+    finally:
+        print("Node exited.")

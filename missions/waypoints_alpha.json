@@ -1,0 +1,30 @@
+{
+    "G1": {
+        "position": [0, 5.95],
+        "heading": 0.0
+    },
+    "S1": {
+        "position": [1.37, 6.52],
+        "heading": 0.0
+    },
+    "B1": {
+        "position": [1, 15.8],
+        "heading": 330
+    },
+    "B2": {
+        "position": [6.86, 5.97],
+        "heading": 135
+    },
+    "O1": {
+        "position": [0.0, 19.2],
+        "heading": 325
+    },
+    "T1": {
+        "position": [-3.5,12.8],
+        "heading": 330
+    },
+    "T2": {
+        "position": [-1.8,7.95],
+        "heading": 215
+    }
+}
