@@ -117,9 +117,9 @@ class EKFNode:
         pass
 
     def dvl_callback(self, msg):
-        yaw = np.deg2rad(self.orientation['yaw'])
-        pitch = np.deg2rad(self.orientation['pitch'])
-        roll = np.deg2rad(self.orientation['roll'])
+        yaw   = (np.deg2rad(self.orientation['yaw'])   + np.pi) % (2 * np.pi) - np.pi
+        pitch = (np.deg2rad(self.orientation['pitch']) + np.pi) % (2 * np.pi) - np.pi
+        roll  = (np.deg2rad(self.orientation['roll'])  + np.pi) % (2 * np.pi) - np.pi
 
         rot_matrix = euler2mat(ai=yaw, aj=pitch, ak=roll, axes='szyx')  # Body-to-world rotation
         self.dvl_velocity = rot_matrix @ np.array([
