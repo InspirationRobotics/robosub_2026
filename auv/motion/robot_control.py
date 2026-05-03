@@ -670,7 +670,7 @@ class RobotControl:
         """
         # Clear the PID error
         self.PIDs["lateral"].reset()
-        self.desired_point["x"] = -x
+        self.desired_point["x"] = x
 
     def set_absolute_y(self, y):
         """
@@ -681,7 +681,7 @@ class RobotControl:
         """
         # Clear the PID error
         self.PIDs["surge"].reset()
-        self.desired_point["y"] = -y
+        self.desired_point["y"] = y
 
     def set_absolute_yaw(self, yaw:float):
         """
