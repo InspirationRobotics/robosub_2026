@@ -127,14 +127,14 @@ class RobotControl:
                 output_limits=(-5, 5),   
             ),
             "surge": PID(
-                self.config.get("FORWARD_PID_P", 2),
+                self.config.get("FORWARD_PID_P", 1),
                 self.config.get("FORWARD_PID_I", 0.05),
                 self.config.get("FORWARD_PID_D", 0.01),
                 setpoint=0,
                 output_limits=(-2, 2),
             ),
             "lateral": PID(
-                self.config.get("LATERAL_PID_P", 2),
+                self.config.get("LATERAL_PID_P", 1),
                 self.config.get("LATERAL_PID_I", 0.05),
                 self.config.get("LATERAL_PID_D", 0.01),
                 setpoint=0,
@@ -195,80 +195,47 @@ class RobotControl:
         """
         while self.running and not rospy.is_shutdown():
             if self.mode == "pid":
-                # Update desire pose
                 self.desired = {
-                    # Get desired X, Y, Z
                     'x': self.desired_point["x"] if self.desired_point["x"] is not None else self.position['x'],
                     'y': self.desired_point["y"] if self.desired_point["y"] is not None else self.position['y'],
                     'z': self.desired_point["z"] if self.desired_point["z"] is not None else self.position['z'],
-
                     'yaw': self.desired_point["yaw"] if self.desired_point.get("yaw") is not None else self.orientation['yaw'],
-                    'pitch': self.desired_point["pitch"] if self.desired_point.get("pitch") is not None else self.orientation['pitch'],
-                    'roll': self.desired_point["roll"] if self.desired_point.get("roll") is not None else self.orientation['roll'],
                 }
 
-                # Calculate error
                 errors = {
                     "x": self.desired["x"] - self.position['x'],
                     "y": self.desired["y"] - self.position['y'],
-                    "z": None,
                     "yaw": 0,
-                    "pitch": self.desired["pitch"] - self.orientation['pitch'],
-                    "roll": (self.desired["roll"] - self.orientation['roll'])/180,
                 }
-                # Set the PWM values
-                # Original PID outputs in world frame
+
                 if self.desired_point['yaw'] is not None:
-                    errors['yaw'] =  (heading_error(heading=self.orientation['yaw'], target=self.desired_point['yaw']) * -1) /180
+                    errors['yaw'] = (heading_error(heading=self.orientation['yaw'], target=self.desired_point['yaw']) * -1) / 180
+
                 lateral_pwm_world = self.PIDs["lateral"](errors["x"])
                 surge_pwm_world   = self.PIDs["surge"](errors["y"])
-                # Set depth PWM value
-                if self.sub=="graey":
-                    depth_pwm_world = (self.PIDs['depth'](self.position['z']) * -1) /80.0
-                elif self.sub=="onyx":
-                    depth_pwm_world = (self.PIDs['depth'](self.position['z']))/80.0
+
+                if self.sub == "graey":
+                    depth_pwm_world = (self.PIDs['depth'](self.position['z']) * -1) / 80.0
+                elif self.sub == "onyx":
+                    depth_pwm_world = (self.PIDs['depth'](self.position['z'])) / 80.0
                 else:
-                    depth_pwm_world = (self.PIDs['depth'](self.position['z']) * -1) /80.0
+                    depth_pwm_world = (self.PIDs['depth'](self.position['z']) * -1) / 80.0
 
-                yaw = self.orientation["yaw"]
-                pitch = self.orientation["pitch"]
-                roll = self.orientation["roll"]
+                # Yaw-only rotation: flight controller handles pitch and roll
+                yaw_rad = np.deg2rad(self.orientation["yaw"])
+                c, s = math.cos(yaw_rad), math.sin(yaw_rad)
 
-                # Rotation matrix from world to body frame
-                R = np.array([
-                    [
-                        math.cos(yaw)*math.cos(pitch),
-                        math.sin(yaw)*math.cos(pitch),
-                        -math.sin(pitch)
-                    ],
-                    [
-                        math.cos(yaw)*math.sin(pitch)*math.sin(roll)-math.sin(yaw)*math.cos(roll),
-                        math.sin(yaw)*math.sin(pitch)*math.sin(roll)+math.cos(yaw)*math.cos(roll),
-                        math.cos(pitch)*math.sin(roll)
-                    ],
-                    [
-                        math.cos(yaw)*math.sin(pitch)*math.cos(roll)+math.sin(yaw)*math.sin(roll),
-                        math.sin(yaw)*math.sin(pitch)*math.cos(roll)-math.cos(yaw)*math.sin(roll),
-                        math.cos(pitch)*math.cos(roll)
-                    ]
-                ])
+                # World-to-body (transpose of body-to-world yaw rotation)
+                surge_pwm_body   =  c * surge_pwm_world   + s * lateral_pwm_world
+                lateral_pwm_body = -s * surge_pwm_world   + c * lateral_pwm_world
 
-                pwm_world = np.array([surge_pwm_world, lateral_pwm_world, depth_pwm_world])
-                pwm_body = R.T @ pwm_world
-
-                surge_pwm_body, lateral_pwm_body, depth_pwm_body = pwm_body
-
-                yaw_pwm   = self.PIDs["yaw"](errors["yaw"])
-                pitch_pwm = self.PIDs["pitch"](errors["pitch"]) if "pitch" in self.PIDs else 0
-                roll_pwm  = self.PIDs["roll"](errors["roll"]) if "roll" in self.PIDs else 0
+                yaw_pwm = self.PIDs["yaw"](errors["yaw"])
 
                 self.__movement(
                     lateral=lateral_pwm_body,
                     forward=surge_pwm_body,
-                    vertical=depth_pwm_body,
+                    vertical=depth_pwm_world,   # no body transform needed for depth
                     yaw=yaw_pwm,
-                    pitch=pitch_pwm,
-                    roll=roll_pwm
                 )
             elif self.mode=="direct":
                 pitch_pwm   = self.direct_input[0]
