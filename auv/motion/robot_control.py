@@ -128,14 +128,14 @@ class RobotControl:
             ),
             "surge": PID(
                 self.config.get("FORWARD_PID_P", 1),
-                self.config.get("FORWARD_PID_I", 0.05),
+                self.config.get("FORWARD_PID_I", 0.01),
                 self.config.get("FORWARD_PID_D", 0.01),
                 setpoint=0,
                 output_limits=(-2, 2),
             ),
             "lateral": PID(
                 self.config.get("LATERAL_PID_P", 1),
-                self.config.get("LATERAL_PID_I", 0.05),
+                self.config.get("LATERAL_PID_I", 0.01),
                 self.config.get("LATERAL_PID_D", 0.01),
                 setpoint=0,
                 output_limits=(-2, 2),
