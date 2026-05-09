@@ -131,14 +131,14 @@ class RobotControl:
                 self.config.get("FORWARD_PID_I", 0.01),
                 self.config.get("FORWARD_PID_D", 0.01),
                 setpoint=0,
-                output_limits=(-2, 2),
+                output_limits=(-1.5, 1.5),
             ),
             "lateral": PID(
                 self.config.get("LATERAL_PID_P", 1),
                 self.config.get("LATERAL_PID_I", 0.01),
                 self.config.get("LATERAL_PID_D", 0.01),
                 setpoint=0,
-                output_limits=(-2, 2),
+                output_limits=(-1.5, 1.5),
             ),
             "depth": PID(
                 self.config.get("DEPTH_PID_P", 100),
@@ -205,11 +205,8 @@ class RobotControl:
                 errors = {
                     "x": self.desired["x"] - self.position['x'],
                     "y": self.desired["y"] - self.position['y'],
-                    "yaw": 0,
+                    "yaw": heading_error(self.orientation['yaw'], self.desired['yaw']),
                 }
-
-                if self.desired_point['yaw'] is not None:
-                    errors['yaw'] = (heading_error(heading=self.orientation['yaw'], target=self.desired_point['yaw']) * -1) / 180
 
                 lateral_pwm_world = self.PIDs["lateral"](errors["x"])
                 surge_pwm_world   = self.PIDs["surge"](errors["y"])
@@ -226,10 +223,10 @@ class RobotControl:
                 c, s = math.cos(yaw_rad), math.sin(yaw_rad)
 
                 # World-to-body (transpose of body-to-world yaw rotation)
-                surge_pwm_body   =  c * surge_pwm_world   + s * lateral_pwm_world
+                surge_pwm_body   =  c * surge_pwm_world   - s * lateral_pwm_world
                 lateral_pwm_body = -s * surge_pwm_world   + c * lateral_pwm_world
 
-                yaw_pwm = self.PIDs["yaw"](errors["yaw"])
+                yaw_pwm = self.PIDs["yaw"](-errors['yaw'] / 180)
 
                 self.__movement(
                     lateral=lateral_pwm_body,
