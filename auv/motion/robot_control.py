@@ -227,9 +227,9 @@ class RobotControl:
                 lateral_pwm_body = -s * surge_pwm_world   + c * lateral_pwm_world
 
                 yaw_pwm = self.PIDs["yaw"](-errors['yaw'] / 180)
-				rospy.loginfo(f"{errors}")
-				rospy.loginfo(f"surge: {-surge_pwm_body}")
-				rospy.loginfo(f"lateral: {-lateral_pwm_body}")
+                rospy.loginfo(f"{errors}")
+                rospy.loginfo(f"surge: {-surge_pwm_body}")
+                rospy.loginfo(f"lateral: {-lateral_pwm_body}")
                 self.__movement(
                     lateral=lateral_pwm_body,
                     forward=surge_pwm_body,
