@@ -20,7 +20,7 @@ data = None
 
 
 while (count < maxPings and data == None):
-    temp = modem.ping_status(111) # Ping Graey 
+    temp = modem.ping_status(222) # Ping Onyx 
     if "#R" in temp: 
         data = temp
     modem.led.on_send_msg()
