@@ -127,18 +127,18 @@ class RobotControl:
                 output_limits=(-5, 5),   
             ),
             "surge": PID(
-                self.config.get("FORWARD_PID_P", 2),
-                self.config.get("FORWARD_PID_I", 0.05),
+                self.config.get("FORWARD_PID_P", 1),
+                self.config.get("FORWARD_PID_I", 0.01),
                 self.config.get("FORWARD_PID_D", 0.01),
                 setpoint=0,
-                output_limits=(-2, 2),
+                output_limits=(-1.5, 1.5),
             ),
             "lateral": PID(
-                self.config.get("LATERAL_PID_P", 2),
-                self.config.get("LATERAL_PID_I", 0.05),
+                self.config.get("LATERAL_PID_P", 1),
+                self.config.get("LATERAL_PID_I", 0.01),
                 self.config.get("LATERAL_PID_D", 0.01),
                 setpoint=0,
-                output_limits=(-2, 2),
+                output_limits=(-1.5, 1.5),
             ),
             "depth": PID(
                 self.config.get("DEPTH_PID_P", 100),
@@ -234,31 +234,14 @@ class RobotControl:
                 pitch = self.orientation["pitch"]
                 roll = self.orientation["roll"]
 
-                # Rotation matrix from world to body frame
-                R = np.array([
-                    [
-                        math.cos(yaw)*math.cos(pitch),
-                        math.sin(yaw)*math.cos(pitch),
-                        -math.sin(pitch)
-                    ],
-                    [
-                        math.cos(yaw)*math.sin(pitch)*math.sin(roll)-math.sin(yaw)*math.cos(roll),
-                        math.sin(yaw)*math.sin(pitch)*math.sin(roll)+math.cos(yaw)*math.cos(roll),
-                        math.cos(pitch)*math.sin(roll)
-                    ],
-                    [
-                        math.cos(yaw)*math.sin(pitch)*math.cos(roll)+math.sin(yaw)*math.sin(roll),
-                        math.sin(yaw)*math.sin(pitch)*math.cos(roll)-math.cos(yaw)*math.sin(roll),
-                        math.cos(pitch)*math.cos(roll)
-                    ]
-                ])
-
-                pwm_world = np.array([surge_pwm_world, lateral_pwm_world, depth_pwm_world])
-                pwm_body = R.T @ pwm_world
+                # World-to-body (transpose of body-to-world yaw rotation)
+                surge_pwm_body   =  c * surge_pwm_world   + s * lateral_pwm_world
+                lateral_pwm_body = -s * surge_pwm_world   + c * lateral_pwm_world
+               
 
                 surge_pwm_body, lateral_pwm_body, depth_pwm_body = pwm_body
 
-                yaw_pwm   = self.PIDs["yaw"](errors["yaw"])
+                yaw_pwm = self.PIDs["yaw"](-errors['yaw'] / 180)
                 pitch_pwm = self.PIDs["pitch"](errors["pitch"]) if "pitch" in self.PIDs else 0
                 roll_pwm  = self.PIDs["roll"](errors["roll"]) if "roll" in self.PIDs else 0
 
@@ -267,8 +250,6 @@ class RobotControl:
                     forward=surge_pwm_body,
                     vertical=depth_pwm_body,
                     yaw=yaw_pwm,
-                    pitch=pitch_pwm,
-                    roll=roll_pwm
                 )
             elif self.mode=="direct":
                 pitch_pwm   = self.direct_input[0]
