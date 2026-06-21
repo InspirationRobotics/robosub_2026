@@ -8,8 +8,8 @@ import time
 
 nnBlobPath = str((Path(__file__).parent / Path('dummy3shave.blob')).resolve().absolute())
 
-IMG_H = 480
 IMG_W = 640
+IMG_H = 480
 
 if not Path(nnBlobPath).exists():
     import sys
