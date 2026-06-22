@@ -5,7 +5,7 @@ To create a sequential order of missions for Graey to follow.
 import rospy
 import time
 from auv.utils import deviceHelper
-from auv.mission import poles_mission, intersub_com_mission, poles_mission_preset, gate_intersub_mission
+from auv.mission import intersub_com_mission, gate_intersub_mission
 from auv.motion import robot_control
 from auv.utils import arm, disarm, deviceHelper
 
@@ -14,7 +14,7 @@ rospy.init_node("Graey", anonymous = True)
 rc = robot_control.RobotControl()
 rc.set_control_mode('depth_hold')
 rc.set_flight_mode("STABILIZE")
-rc.go_to_depth(0.8)
+rc.go_to_depth(0.5)
 rospy.loginfo("Robot armed and set to depth 0.8 m")
 gate_heading = 0 # CALIBRATE EACH TIME 
 return_heading = 180
