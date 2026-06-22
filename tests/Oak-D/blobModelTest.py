@@ -8,8 +8,8 @@ import time
 
 nnBlobPath = Path('/robosub_2026/auv/device/cams/models/binsNicoModel/best_openvino_2022.1_6shave.blob').resolve().absolute()
 
-IMG_H = 480
 IMG_W = 640
+IMG_H = 480
 
 if not Path(nnBlobPath).exists():
     import sys
