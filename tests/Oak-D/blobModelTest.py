@@ -6,7 +6,7 @@ import depthai as dai
 import numpy as np
 import time
 
-nnBlobPath = Path('/robosub_2026/auv/device/cams/models/binsNicoModel/best_openvino_2022.1_6shave.blob').resolve().absolute()
+nnBlobPath = Path('home/inspiration/robosub_2026/auv/device/cams/models/binsNicoModel/best_openvino_2022.1_6shave.blob').resolve().absolute()
 
 IMG_W = 640
 IMG_H = 480
