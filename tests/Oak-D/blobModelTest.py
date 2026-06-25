@@ -119,7 +119,7 @@ with dai.Device(pipeline) as device:
         frame = cv2.circle(frame, (center_x, center_y), radius=0, color=(246, 70, 255), thickness=10)
         frameCount += 1
         print(f'Frame {frameCount} has center {center_x, center_y}')
-        cv2.imshow("rgb", frame)
+        #cv2.imshow("rgb", frame)
 
         if cv2.waitKey(1) == ord('q') or cv2.waitKey(1) == 27:
             break
