@@ -41,7 +41,7 @@ rospy.logerr("Roll complete")
 
 """MODEMS"""
 try:
-    git pull --rebaseintersubMission = intersub_com_mission.intersubComMission(robotControl=rc)
+    intersubMission = intersub_com_mission.intersubComMission(robotControl=rc)
     intersubMission.run()  # <-- Comms only
     rospy.loginfo("FINISHED INTERSUB COMMUNICATION")
     eventflags[3] = True
