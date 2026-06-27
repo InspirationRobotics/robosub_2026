@@ -6,10 +6,10 @@ import depthai as dai
 import numpy as np
 import time
 
-nnBlobPath = str((Path(__file__).parent / Path('dummy3shave.blob')).resolve().absolute())
+nnBlobPath = Path('/home/inspiration/robosub_2026/auv/device/cams/models/binsNicoModel/best620_openvino_2022.1_6shave.blob').resolve().absolute()
 
-IMG_H = 480
 IMG_W = 640
+IMG_H = 480
 
 if not Path(nnBlobPath).exists():
     import sys
@@ -17,12 +17,12 @@ if not Path(nnBlobPath).exists():
 
 # What are the classes you looking for? Only targets in our case
 labelMap = [
-            "Class_0",
-            "Class_1"
+            "Blood",
+            "Fire"
         ]
 
 classAmt = len(labelMap)
-confidence = 0.5
+confidence = 0.2
 anchors = []
 anchorMasks = {}
 
@@ -51,7 +51,7 @@ detectionNetwork.setNumClasses(classAmt)
 detectionNetwork.setCoordinateSize(4)
 detectionNetwork.setAnchors(anchors)
 detectionNetwork.setAnchorMasks(anchorMasks)
-detectionNetwork.setIouThreshold(0.5)
+detectionNetwork.setIouThreshold(confidence)
 detectionNetwork.setBlobPath(nnBlobPath)
 #detectionNetwork.setNumInferenceThreads(2) needed?
 detectionNetwork.input.setBlocking(False)
@@ -73,6 +73,7 @@ with dai.Device(pipeline) as device:
     fps = 0
     color = (255, 255, 255)
     printOutputLayersOnce = True
+    frameCount = 0
     while True:
         inPreview = previewQueue.get()
         inDet = detectionNNQueue.get()
@@ -92,6 +93,7 @@ with dai.Device(pipeline) as device:
         past_width = 0
         center_x = 0
         center_y = 0
+     
         #Look at the bouding boxes. Find the bigest one - Biggest target.
         for detection in detections:
             # Denormalize bounding box
@@ -115,7 +117,9 @@ with dai.Device(pipeline) as device:
 
         cv2.putText(frame, f"NN fps: {fps:.2f}", (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
         frame = cv2.circle(frame, (center_x, center_y), radius=0, color=(246, 70, 255), thickness=10)
-        cv2.imshow("rgb", frame)
+        frameCount += 1
+        print(f'Frame {frameCount} has center {center_x, center_y}')
+        #cv2.imshow("rgb", frame)
 
-        if cv2.waitKey(1) == ord('q'):
+        if cv2.waitKey(1) == ord('q') or cv2.waitKey(1) == 27:
             break

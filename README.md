@@ -1,6 +1,6 @@
 # robosub_2025
 
-Team Inspiration's repository for the RoboSub 2025 competition. We are using ROS, python, and C++.
+Team Inspiration's repository for the RoboSub 2026 competition. We are using ROS, python, and C++.
 
 ## Getting Started
 
@@ -37,7 +37,7 @@ Make sure to follow the README to install the dependencies in the correct order.
 (For the following, you can also use the SSH link instead of the HTTPS link -- HTTPS is usually simpler)
 
 ```bash
-git clone https://github.com/InspirationRobotics/robosub_2025
+git clone https://github.com/InspirationRobotics/robosub_2026
 mv robosub_2023 auv && cd auv
 python3 -m pip install -e .
 ```
@@ -45,8 +45,8 @@ python3 -m pip install -e .
 #### On your own computer
 
 ```bash
-git clone https://github.com/InspirationRobotics/robosub_2025
-cd robosub_2025
+git clone https://github.com/InspirationRobotics/robosub_2026
+cd robosub_2026
 python3 -m pip install -e ."[cv,dev]"
 # or 
 python2 -m pip install -e ."[cv,dev]"
