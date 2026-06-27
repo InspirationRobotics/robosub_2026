@@ -23,6 +23,18 @@ eventflags = [False,False,False,False,False]
 
 
 
+"""MODEMS"""
+try:
+    intersubMission = intersub_com_mission.intersubComMission(robotControl=rc)
+    intersubMission.run()  # <-- Comms only
+    rospy.loginfo("FINISHED INTERSUB COMMUNICATION")
+    eventflags[3] = True
+except Exception as e:
+    rospy.logerr("ERROR DURING MODEM MISSION")
+    rospy.logerr(e)
+    eventflags[3] = True  
+
+
 """ROLL MANEUVER"""
 try:
     intersubMission.do_roll()  # <-- Execute roll here
