@@ -195,9 +195,9 @@ class RobotControl:
         """
         while self.running and not rospy.is_shutdown():
             if self.mode == "pid":
-                # Update desire pose
+                
                 self.desired = {
-                    # Get desired X, Y, Z
+                    
                     'x': self.desired_point["x"] if self.desired_point["x"] is not None else self.position['x'],
                     'y': self.desired_point["y"] if self.desired_point["y"] is not None else self.position['y'],
                     'z': self.desired_point["z"] if self.desired_point["z"] is not None else self.position['z'],
@@ -407,7 +407,11 @@ class RobotControl:
         """
         with self.lock:
             if msg=="pid":
-                self.reset()
+                for key in ("surge", "lateral", "yaw", "pitch", "roll"):
+                    self.PIDs[key].reset()
+                self.desired_point["x"] = None
+                self.desired_point["y"] = None
+                self.direct_input = [0] * 6
                 self.mode = msg
                 rospy.loginfo("Set to pid control mode")
             elif msg=="depth_hold":
