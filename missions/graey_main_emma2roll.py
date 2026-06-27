@@ -14,7 +14,7 @@ rospy.init_node("Graey", anonymous = True)
 rc = robot_control.RobotControl()
 rc.set_control_mode('depth_hold')
 rc.set_flight_mode("STABILIZE")
-rc.go_to_depth(0.5)
+rc.go_to_depth(0.35)
 rospy.loginfo("Robot armed and set to depth 0.8 m")
 gate_heading = 0 # CALIBRATE EACH TIME 
 return_heading = 180
