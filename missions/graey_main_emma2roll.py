@@ -21,19 +21,34 @@ return_heading = 180
 config = deviceHelper.variables
 eventflags = [False,False,False,False,False]
 
+"""COIN TOSS"""
+try:
+   #robosub faces gate
+   rc.go_to_heading(gate_heading)
+   rc.activate_heading_control(True)
+   rc.set_absolute_yaw(gate_heading)
+   rospy.loginfo("Robot heading set to gate heading")
+   
+   # set event flag for coin toss mission to True
+   eventflags[0] = True
 
+except Exception as e:
+    rospy.logerr("ERROR DURING COIN TOSS")
+    rospy.logerr(e)
+
+rc.movement(roll=-5)
+rospy.logerr("Roll complete")
 
 """MODEMS"""
 try:
-    intersubMission = intersub_com_mission.intersubComMission(robotControl=rc)
-    intersubMission.run()  # <-- Comms only
+  #  intersubMission = intersub_com_mission.intersubComMission(robotControl=rc)
+  #  intersubMission.run()  # <-- Comms only
     rospy.loginfo("FINISHED INTERSUB COMMUNICATION")
     eventflags[3] = True
 except Exception as e:
     rospy.logerr("ERROR DURING MODEM MISSION")
     rospy.logerr(e)
     eventflags[3] = True  
-
 
 """ROLL MANEUVER"""
 try:
