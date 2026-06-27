@@ -374,9 +374,9 @@ class RobotControl:
         # Publish PWMs to /auv/devices/thrusters
         if self.debug:
             rospy.loginfo(f"pwms : {channels[0:6]} | input: {[pitch,roll,vertical,yaw,forward,lateral]}")
-            pass
         else:
-            self.pub_thrusters.publish(pwm)
+           if not rospy.is_shutdown():
+               self.pub_thrusters.publish(pwm)
 
     def activate_heading_control(self, activate:bool):
         self.heading_control = activate
