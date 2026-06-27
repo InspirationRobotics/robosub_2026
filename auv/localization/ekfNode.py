@@ -68,9 +68,13 @@ class EKF6State:
         rospy.loginfo("EKF State being reset....")
         self.x = np.zeros((6, 1))
         self.P = np.eye(6) * 0.1
-        self.Q = np.diag([0.01] * 3 + [0.3] * 3)
-        self.R_dvl = np.eye(3) * 0.05
-        self.R_baro = np.array([[0.05]])
+
+        # lower the convariance because imu gives more error 
+        self.Q = np.diag([0.05, 0.05, 0.5, 0.5, 0.1 ])
+        self.R_dvl = np.eye(3) * 0.01
+        #barometer not noisy lower R
+        self.R_baro = np.array([[0.02]])
+
         self.accel_world = np.zeros((3, 1))
 
 
@@ -83,17 +87,18 @@ class EKFNode:
         self.ekf = EKF6State(self.dt)
 
         self.dvl_velocity = np.zeros((3, 1))
+        self.dvl_valid = False          # gate DVL updates on validity flag
+        self.last_dvl_time = rospy.Time(0)
+
         self.imu_acc_data = {"ax": 0, "ay": 0, "az": 0}
         self.orientation = {"yaw": 0, "pitch": 0, "roll": 0}
 
-        # IMU acceleration rotated to world frame with gravity removed, ready for predict step
         self.imu_accel_world = np.zeros((3, 1))
 
         self.depth = None
         self.depth_calib = 0
         self.calibrated = False
 
-        # Tracks real elapsed time between ekf_step calls for accurate dt
         self.last_step_time = None
         self.last_imu_time = rospy.Time(0)
 
@@ -140,13 +145,28 @@ class EKFNode:
         # FOG provides low-drift heading — use it for yaw in DVL frame rotation
        # self.orientation['yaw'] = msg.data
         pass
-    def dvl_callback(self, msg):
 
-        self.dvl_velocity = self.rot_matrix() @ np.array([
+    def dvl_callback(self, msg):
+        # Rotate DVL body-frame velocity to world frame using yaw only.
+        # Full rot_matrix (pitch+roll+yaw) over-rotates: DVL measures velocity
+        # relative to the pool floor — pitch and roll tilt don't change what
+        # the DVL reports as forward/lateral speed over ground.
+        yaw_rad = (np.deg2rad(self.orientation['yaw']) + np.pi) % (2 * np.pi) - np.pi
+        cos_y = np.cos(yaw_rad)
+        sin_y = np.sin(yaw_rad)
+        R_yaw = np.array([
+            [ cos_y, -sin_y, 0],
+            [ sin_y,  cos_y, 0],
+            [     0,      0, 1],
+        ])
+        v_body = np.array([
             [msg.twist.linear.x],
             [msg.twist.linear.y],
-            [msg.twist.linear.z]
+            [msg.twist.linear.z],
         ])
+        self.dvl_velocity = R_yaw @ v_body
+        self.dvl_valid = True
+        self.last_dvl_time = rospy.Time.now()
 
     def serviceCallback(self, request):
         rospy.loginfo("Recalibrating EKF...")
@@ -164,19 +184,31 @@ class EKFNode:
             pass
 
     def ekf_step(self, event):
-        # Compute actual elapsed time since last step for accurate kinematics
         now = rospy.Time.now()
         if self.last_step_time is None:
             dt = self.dt
         else:
             dt = (now - self.last_step_time).to_sec()
-            # Clamp dt to avoid large jumps on startup or timer hiccups
             dt = np.clip(dt, 0.001, 0.1)
         self.last_step_time = now
-        if rospy.Time.now() - self.last_imu_time > rospy.Duration(0.5):
+
+        imu_stale = (now - self.last_imu_time) > rospy.Duration(0.5)
+
+        if (now - self.last_dvl_time) > rospy.Duration(0.3):
+            self.dvl_valid = False
+
+        if imu_stale:
             self.ekf.accel_world = np.zeros((3, 1))
-            self.ekf.predict(dt)
+
+        self.ekf.predict(dt)
+
+        
+        dvl_speed = float(np.linalg.norm(self.dvl_velocity))
+        if self.dvl_valid and dvl_speed < 5.0:   # 5 m/s hard sanity cap
             self.ekf.update_dvl(self.dvl_velocity)
+        else:
+            self.ekf.P += np.diag([0.0, 0.0, 0.0, 0.02, 0.02, 0.005])
+
         if self.depth is not None and self.calibrated:
             self.ekf.update_depth(self.depth)
             self.publish_pose()
@@ -233,7 +265,7 @@ class EKFNode:
         self.ekf.reset()
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     node = EKFNode()
     rospy.sleep(2)
     rospy.loginfo("Running the simple ekf node")
