@@ -39,7 +39,7 @@ except Exception as e:
 
 """GATE MISSION"""
 try:
-   gate_forward_distance = 1 # m
+   gate_forward_distance = 2 # m
    rospy.loginfo(f"Start moving forward {gate_forward_distance} m")
    rc.go_forward_distance(gate_forward_distance)
    rospy.loginfo(f"Moved {gate_forward_distance} m")
@@ -58,10 +58,11 @@ except Exception as e:
    eventflags[0] = True
    eventflags[1] = True
 
-rc.movement(roll=-3)
-rospy.logerr("Roll is complete :)")
+#rc.movement(roll=-3)
+#rospy.logerr("Roll is complete :)")
 
 """MODEMS"""
+"""
 try:
     intersubMission = intersub_com_mission.intersubComMission(robotControl=rc)
     intersubMission.run()  # <-- Comms only
@@ -71,14 +72,15 @@ except Exception as e:
     rospy.logerr("ERROR DURING MODEM MISSION")
     rospy.logerr(e)
     eventflags[3] = True  
-
+"""
 """ROLL MANEUVER"""
+"""
 try:
     intersubMission.do_roll()  # <-- Execute roll here
 except Exception as e:
     rospy.logerr("ERROR OCCUR DURING ROLL MANEUVER")
     rospy.logerr(e)
-    
+"""    
 
 disarm.disarm()
 rc.exit()
