@@ -71,7 +71,8 @@ try:
 except Exception as e:
     rospy.logerr("ERROR DURING MODEM MISSION")
     rospy.logerr(e)
-    eventflags[3] = True  
+    eventflags[3] = True 
+    
 """
 """ROLL MANEUVER"""
 """
