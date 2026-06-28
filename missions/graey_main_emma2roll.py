@@ -36,8 +36,10 @@ except Exception as e:
     rospy.logerr("ERROR DURING COIN TOSS")
     rospy.logerr(e)
 
-
+"""
+"""
 """GATE MISSION"""
+"""
 try:
    gate_forward_distance = 2 # m
    rospy.loginfo(f"Start moving forward {gate_forward_distance} m")
@@ -47,7 +49,8 @@ try:
    print("[INFO] GATE MISSION COMPLETE")
    # set event flag for gate mission to True
    eventflags[1] = True
-   """To stop mission type e"""
+  """ """To stop mission type e"""
+"""
 except KeyboardInterrupt as e:
    rospy.logwarn("Skipping current mission")
    eventflags[0] = True
@@ -57,7 +60,7 @@ except Exception as e:
    rospy.logerr(e)
    eventflags[0] = True
    eventflags[1] = True
-
+"""
 #rc.movement(roll=-3)
 #rospy.logerr("Roll is complete :)")
 
