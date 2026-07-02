@@ -24,7 +24,7 @@ class CV:
         """
         # Camera to get the camera stream from.
         self.camera = "/auv/camera/videoOAKdRawForward"
-        self.model = "everything" # Change later once data is collected for the platform
+        self.model = "octagonTest" # Change later once data is collected for the platform
 
         self.config = config
         self.shape = (640, 480)
