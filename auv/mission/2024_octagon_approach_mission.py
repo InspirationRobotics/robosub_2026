@@ -59,7 +59,8 @@ class OctagonApproachMission:
         Here should be all the code required to run the mission.
         This could be a loop, a finite state machine, etc.
         """
-
+        rc = robot_control.RobotControl()
+        rc.setDepth(1)
         while not rospy.is_shutdown():
             time.sleep(0.05)
             if not self.received:
