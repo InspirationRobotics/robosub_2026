@@ -17,15 +17,10 @@ return_heading = 180
 config = deviceHelper.variables
 eventflags = [False,False,False,False,False]
 
-
-rc.go_to_heading(0)
-time.sleep(3)
-rc.go_to_heading(30)
-time.sleep(3)
-rc.go_to_heading(60)
-time.sleep(3)   
-rc.go_to_heading(90)
-time.sleep(3)
+gate_forward_distance = 1 # m
+rospy.loginfo(f"Start moving forward {gate_forward_distance} m")
+rc.go_forward_distance(gate_forward_distance)
+rospy.loginfo(f"Moved {gate_forward_distance} m")
 
 disarm.disarm()
 rc.exit()
