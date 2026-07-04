@@ -1,0 +1,31 @@
+import rospy
+import time
+from auv.utils import deviceHelper
+from auv.mission import intersub_com_mission, gate_intersub_mission
+from auv.motion import robot_control
+from auv.utils import arm, disarm, deviceHelper
+
+"""INITIALIZE"""
+rospy.init_node("Graey", anonymous = True)
+rc = robot_control.RobotControl()
+rc.set_control_mode('depth_hold')
+rc.set_flight_mode("STABILIZE")
+rc.go_to_depth(0.6)
+rospy.loginfo("Robot armed and set to depth 0.8 m")
+gate_heading = 0 # CALIBRATE EACH TIME 
+return_heading = 180
+config = deviceHelper.variables
+eventflags = [False,False,False,False,False]
+
+
+rc.go_to_heading(0)
+time.sleep(3)
+rc.go_to_heading(30)
+time.sleep(3)
+rc.go_to_heading(60)
+time.sleep(3)   
+rc.go_to_heading(90)
+time.sleep(3)
+
+disarm.disarm()
+rc.exit()

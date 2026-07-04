@@ -5,7 +5,7 @@ To create a sequential order of missions for Graey to follow.
 import rospy
 import time
 from auv.utils import deviceHelper
-from auv.mission import intersub_com_mission, gate_intersub_mission
+from auv.mission import poles_mission, intersub_com_mission, poles_mission_preset, gate_intersub_mission
 from auv.motion import robot_control
 from auv.utils import arm, disarm, deviceHelper
 
@@ -14,8 +14,8 @@ rospy.init_node("Graey", anonymous = True)
 rc = robot_control.RobotControl()
 rc.set_control_mode('depth_hold')
 rc.set_flight_mode("STABILIZE")
-rc.go_to_depth(0.5)
-rospy.loginfo("Robot armed and set to depth 0.5 m")
+rc.go_to_depth(0.6)
+rospy.loginfo("Robot armed and set to depth 0.6 m")
 gate_heading = 0 # CALIBRATE EACH TIME 
 return_heading = 180
 config = deviceHelper.variables
@@ -31,9 +31,8 @@ except Exception as e:
     rospy.logerr("ERROR DURING GATE INTERSUB MISSION")
     rospy.logerr(e)
 
-"""COIN TOSS"""
+"""COINT TOSS + GATE MISSION"""
 try:
-   #robosub faces gate
    rc.go_to_heading(gate_heading)
    rc.activate_heading_control(True)
    rc.set_absolute_yaw(gate_heading)
@@ -41,8 +40,7 @@ try:
    
    # set event flag for coin toss mission to True
    eventflags[0] = True
-
-   """GATE MISSION"""
+   
    gate_forward_distance = 3 # m
    rospy.loginfo(f"Start moving forward {gate_forward_distance} m")
    rc.go_forward_distance(gate_forward_distance)
@@ -51,7 +49,6 @@ try:
    print("[INFO] GATE MISSION COMPLETE")
    # set event flag for gate mission to True
    eventflags[1] = True
-   """To stop mission type e"""
 except KeyboardInterrupt as e:
    rospy.logwarn("Skipping current mission")
    eventflags[0] = True
