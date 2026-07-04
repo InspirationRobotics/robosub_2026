@@ -11,11 +11,13 @@ rc = robot_control.RobotControl()
 rc.set_control_mode('depth_hold')
 rc.set_flight_mode("STABILIZE")
 rc.go_to_depth(0.6)
-rospy.loginfo("Robot armed and set to depth 0.8 m")
-gate_heading = 0 # CALIBRATE EACH TIME 
-return_heading = 180
+rospy.loginfo("Robot armed and set to depth 0.6 m")
+#gate_heading = 0 # CALIBRATE EACH TIME 
+#return_heading = 180
 config = deviceHelper.variables
 eventflags = [False,False,False,False,False]
+
+rc.go_to_heading(0)
 
 gate_forward_distance = 1 # m
 rospy.loginfo(f"Start moving forward {gate_forward_distance} m")
