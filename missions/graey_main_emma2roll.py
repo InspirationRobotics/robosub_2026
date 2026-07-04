@@ -86,8 +86,8 @@ except Exception as e:
    eventflags[0] = True
    eventflags[1] = True
 """
-#rc.movement(roll=-3)
-#rospy.logerr("Roll is complete :)")
+rc.movement(roll=-3)
+rospy.logerr("Roll is complete :)")
 
 """MODEMS"""
 """
