@@ -392,7 +392,11 @@ class RobotControl:
         """
         with self.lock:
             if msg=="pid":
-                self.reset()
+                for key in ("surge", "lateral", "yaw", "pitch", "roll"):
+                    self.PIDs[key].reset()
+                self.desired_point["x"] = None
+                self.desired_point["y"] = None
+                self.direct_input = [0] * 6
                 self.mode = msg
                 rospy.loginfo("Set to pid control mode")
             elif msg=="depth_hold":

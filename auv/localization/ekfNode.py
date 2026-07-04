@@ -78,6 +78,9 @@ class EKFNode:
         self.ekf = EKF6State(self.dt)
 
         self.dvl_velocity = np.zeros((3, 1))
+        self.dvl_valid = False          # gate DVL updates on validity flag
+        self.last_dvl_time = rospy.Time(0)
+
         self.imu_acc_data = {"ax": 0, "ay": 0, "az": 0}
         self.orientation = {"yaw": 0, "pitch": 0, "roll": 0}
 
@@ -125,8 +128,11 @@ class EKFNode:
         self.dvl_velocity = rot_matrix @ np.array([
             [msg.twist.linear.x],
             [msg.twist.linear.y],
-            [msg.twist.linear.z]
+            [msg.twist.linear.z],
         ])
+        self.dvl_velocity = R_yaw @ v_body
+        self.dvl_valid = True
+        self.last_dvl_time = rospy.Time.now()
 
     def serviceCallback(self, request):
         rospy.loginfo("Recalibrating EKF...")
