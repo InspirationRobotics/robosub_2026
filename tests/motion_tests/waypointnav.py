@@ -10,7 +10,7 @@ rc.set_control_mode("depth_hold")
 rc.set_flight_mode("STABILIZE")
 
 # Diving down
-rc.go_to_depth(0.5)
+rc.go_to_depth(0.4)
 
 # set to 0
 rc.go_to_heading(0)
@@ -25,7 +25,7 @@ rc.waypointNav(0,4.6)
 rc.waypointNav(-1.4,2.5)
 rc.waypointNav(0,0)
 
-time.sleep(15)
+#time.sleep(15)
 
 # Exit
 rospy.loginfo("Reached the end")
