@@ -258,7 +258,7 @@ class RobotControl:
                 if self.sub=="graey":
                     depth_pwm = (self.PIDs['depth'](self.position['z']) * -1) /80.0
                 elif self.sub=="onyx":
-                    depth_pwm = (self.PIDs['depth'](self.position['z']))/80.0
+                    depth_pwm = (self.PIDs['depth'](self.position['z'])* -1)/80.0
                 else:
                     depth_pwm = (self.PIDs['depth'](self.position['z']) * -1) /80.0
 
