@@ -39,7 +39,7 @@ class OctagonApproachMission:
 
         self.cv_handler.set_target("octagon_approach_cv", target)
         print("[INFO] octagon Approach Mission Init")
-        self.robot_control.set_depth(0.38)
+        self.robot_control.set_depth(0.5)
     def callback(self, msg):
         """
         Calls back the cv_handler output -- you can have multiple callbacks for multiple CV handlers. Converts the output into JSON format.
@@ -59,7 +59,7 @@ class OctagonApproachMission:
         Here should be all the code required to run the mission.
         This could be a loop, a finite state machine, etc.
         """
-        self.robot_control.go_to_depth(0.5)
+        #self.robot_control.go_to_depth(0.5) <- this is done in __init__ line 42
         #rc = robot_control.RobotControl()
         #rc.rc.go_to_depth(1)
         while not rospy.is_shutdown():
