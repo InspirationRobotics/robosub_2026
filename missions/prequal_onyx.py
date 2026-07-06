@@ -6,7 +6,7 @@ from auv.motion import robot_control
 from auv.utils import arm, disarm, deviceHelper
 
 #time.sleep(40)
-rospy.init_node("Onyx", anonymous = True)
+rospy.init_node("Graey", anonymous = True)
 rc = robot_control.RobotControl()
 rc.set_flight_mode("STABILIZE")
 rc.set_control_mode("depth_hold")
@@ -24,14 +24,16 @@ try:
     rc.go_to_heading(initial_heading)
     rc.activate_heading_control(True)
     # what is the purpose of creating names in the code if defined in the next line
-    rc.go_forward_distance(6)
+    rc.go_forward_distance(2)
     rc.go_lateral_distance(1)
-
-    rc.go_to_heading(return_heading)
+    rc.movement(forward=2)
+    time.sleep(5)
+    rc.movement()
+    #rc.go_to_heading(return_heading)
     #turn 180 degrees
-    rc.go_forward_distance(2)
-    rc.go_lateral_distance(1)
-    rc.go_forward_distance(2)
+    #rc.go_forward_distance(2)
+    #rc.go_lateral_distance(1)
+    #rc.go_forward_distance(2)
 
     #ros.log_info("mission end")
 

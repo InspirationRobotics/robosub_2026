@@ -106,7 +106,7 @@ class RobotControl:
 
         self.PIDs = {
             "yaw": PID(
-                self.config.get("YAW_PID_P", 12),
+                self.config.get("YAW_PID_P", 24),
                 self.config.get("YAW_PID_I", 0.01),
                 self.config.get("YAW_PID_D", 0.0),
                 setpoint=0,
@@ -214,7 +214,7 @@ class RobotControl:
                 if self.sub == "graey":
                     depth_pwm_world = (self.PIDs['depth'](self.position['z']) * -1) / 80.0
                 elif self.sub == "onyx":
-                    depth_pwm_world = (self.PIDs['depth'](self.position['z'])) / 80.0
+                    depth_pwm_world = (self.PIDs['depth'](self.position['z']) * -1) / 80.0
                 else:
                     depth_pwm_world = (self.PIDs['depth'](self.position['z']) * -1) / 80.0
 
@@ -258,7 +258,7 @@ class RobotControl:
                 if self.sub=="graey":
                     depth_pwm = (self.PIDs['depth'](self.position['z']) * -1) /80.0
                 elif self.sub=="onyx":
-                    depth_pwm = (self.PIDs['depth'](self.position['z']))/80.0
+                    depth_pwm = (self.PIDs['depth'](self.position['z']) * -1)/80.0
                 else:
                     depth_pwm = (self.PIDs['depth'](self.position['z']) * -1) /80.0
 

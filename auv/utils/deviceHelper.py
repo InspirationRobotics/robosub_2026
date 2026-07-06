@@ -31,7 +31,7 @@ else:
 def findFromId(ids):
     """Finding devices based on their IDs"""
     print(f"Starting findFromId for {ids}")
-    bash = os.popen("bash /home/inspiration/robosub_2025/auv/utils/usbLink.sh").read() # Read usbLink.sh
+    bash = os.popen("bash /home/inspiration/robosub_2026/auv/utils/usbLink.sh").read() # Read usbLink.sh
     bashSplit = bash.split("\n") # Split output into lines at "\n"
     result = []
 
@@ -64,7 +64,7 @@ def findCam(ids):
     """To find cameras based on their IDs"""
     # Read the list of USB devices, split into lines at "\n"
     # NOTE you may want to change this path next year
-    bash = os.popen("bash /home/inspiration/robosub_2025/auv/utils/usbLink.sh").read()
+    bash = os.popen("bash /home/inspiration/robosub_2026/auv/utils/usbLink.sh").read()
     bash = bash.split("\n")
     result = []
     # For each ID, go over each line, and if the device is written to "dev/video", which means it's a camera,

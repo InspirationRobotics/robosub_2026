@@ -1,0 +1,121 @@
+import sys
+sys.path.append('/opt/ros/melodic/lib/python2.7/dist-packages')
+import time
+import rospy
+import RPi.GPIO as GPIO  # LED control
+from auv.motion.robot_control import RobotControl
+from std_msgs.msg import String
+from auv.utils import deviceHelper
+
+class intersubComMission:
+   def __init__(self, robotControl=None):
+       self.rc = robotControl
+       
+       # LED Integration: Setup GPIO for pin 31
+       self.LED_PIN = 31 
+       GPIO.setmode(GPIO.BOARD)
+       GPIO.setup(self.LED_PIN, GPIO.OUT)
+       
+       self.pub_modem = rospy.Publisher("/auv/devices/modem/send", String, queue_size=10)
+       self.sub_modem = rospy.Subscriber("/auv/devices/modem/received", String, self.rec_callback)
+       self.sub = deviceHelper.variables.get('sub')
+       self.end = False
+       self.roll_requested = False
+
+   def flash_led(self):
+       """Pulses the LED pin"""
+       GPIO.output(self.LED_PIN, GPIO.HIGH)
+       time.sleep(0.1)
+       GPIO.output(self.LED_PIN, GPIO.LOW)
+
+   def log_event(self, message, level="info"):
+       timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+       log_msg = f"[{timestamp}] {message}"
+       if level == "error":
+           rospy.logerr(log_msg)
+       elif level == "warn":
+           rospy.logwarn(log_msg)
+       else:
+           rospy.loginfo(log_msg)
+       with open("coms.log", "a") as file:
+           file.write(log_msg + "\n")
+
+   def send_modem_message(self, dest_addr, move):
+       try:
+           self.rc.send_modem(addr=dest_addr, movement=move)
+           self.log_event(f"Sent message to address {dest_addr} with movement: {move}")
+           time.sleep(1)
+       except Exception as e:
+           self.log_event(f"Failed to send modem message: {e}", level="error")
+
+   def rec_callback(self, msg):
+       # Trigger LED whenever a message is received
+       self.flash_led()
+       
+       if not self.end and self.sub == "graey":
+           self.log_event(f"Received message: {msg.data}")
+           if msg.data == "YAW":
+               self.send_modem_message(dest_addr="020", move="graey received YAW")
+               self.log_event("Attempting to YAW")
+               self.log_event("Graey yaw done, telling Onyx to YAW")
+               self.send_modem_message(dest_addr="020", move="YAW")
+           self.end = True
+
+       if self.sub == "onyx":
+           self.log_event(f"Received message: {msg.data}")
+           if msg.data == "YAW":
+               self.send_modem_message(dest_addr="010", move="onyx attempting to YAW")
+               self.log_event("Attempting to YAW")
+               self.log_event("Onyx has completed YAW movement")
+               self.send_modem_message(dest_addr="010", move="Onyx has completed YAW movement")
+           self.end = True
+
+   def run(self):
+       current_sub = self.sub
+       self.log_event(f"Starting intersub communication mission as: {current_sub}")
+       self.rc.set_control_mode("depth_hold")
+       self.rc.activate_heading_control(True)
+       time.sleep(1)
+
+       if current_sub == "graey":
+           time_counter = 0
+           while not self.end:
+               if time_counter >= 40:
+                   self.log_event("Time out, no message received", level="warn")
+                   self.log_event("Graey switching to sending mode, attempting to signal to Onyx to YAW")
+                   destination_addr = "020" 
+                   for i in range(20):
+                       if self.end: break
+                       self.log_event(f"Graey sending YAW message {i + 1}/20 to Onyx")
+                       self.send_modem_message(dest_addr=destination_addr, move="YAW")
+               time.sleep(1)
+               time_counter += 1
+
+       elif current_sub == "onyx":
+           self.log_event("Attempting to signal to Graey to YAW")
+           destination_addr = "010"
+           for i in range(20):
+               if self.end: break
+               self.log_event(f"Onyx sending YAW message {i + 1}/20 to Graey")
+               self.send_modem_message(dest_addr=destination_addr, move="YAW")
+               time.sleep(1)
+
+           time_counter = 0
+           while not self.end:
+               if time_counter >= 20:
+                   self.log_event("Time out, Onyx did not receive message, ending transmission", level="warn")
+                   self.log_event("Onyx switching to receiving mode, waiting for Graey to signal to YAW")
+                   while not self.end: time.sleep(1)
+                   self.end = True
+                   break
+               time.sleep(1)
+               time_counter += 1
+
+if __name__ == "__main__":
+   rospy.init_node("intersub_coms_mission", anonymous=True)
+   rospy.loginfo("Starting modem test script...")
+   rc = RobotControl()
+   time.sleep(20)
+   mission = intersubComMission(robotControl=rc)
+   mission.run()
+   rc.exit()

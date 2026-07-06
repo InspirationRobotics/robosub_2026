@@ -22,6 +22,7 @@ config = deviceHelper.variables
 eventflags = [False,False,False,False,False]
 
 """GATE INTERSUB MISSION"""
+"""
 try:
     gateIntersub = gate_intersub_mission.GateIntersubMission(robotControl=rc)
     gateIntersub.run()  # <-- Comms only
@@ -29,28 +30,25 @@ try:
 except Exception as e:
     rospy.logerr("ERROR DURING GATE INTERSUB MISSION")
     rospy.logerr(e)
+"""
 
-"""COIN TOSS"""
+"""COIN TOSS + GATE MISSION"""
 try:
-   #robosub faces gate
    rc.go_to_heading(gate_heading)
    rc.activate_heading_control(True)
-   rc.set_absolute_yaw(gate_heading)
+  # rc.set_absolute_yaw(gate_heading)
    rospy.loginfo("Robot heading set to gate heading")
    
    # set event flag for coin toss mission to True
    eventflags[0] = True
-
-   """GATE MISSION"""
-   gate_forward_distance = 1 # m
-   rospy.loginfo(f"Start moving forward {gate_forward_distance} m")
+   
+   gate_forward_distance = 3 # m
+   rospy.loginfo(f"Start moving forward {gate_forward_distance} m"
    rc.go_forward_distance(gate_forward_distance)
    rospy.loginfo(f"Moved {gate_forward_distance} m")
-   
    print("[INFO] GATE MISSION COMPLETE")
    # set event flag for gate mission to True
    eventflags[1] = True
-   """To stop mission type e"""
 except KeyboardInterrupt as e:
    rospy.logwarn("Skipping current mission")
    eventflags[0] = True
@@ -62,35 +60,8 @@ except Exception as e:
    eventflags[1] = True
 
 
-"""
-"""
-"""GATE MISSION"""
-"""
-try:
-   gate_forward_distance = 2 # m
-   rospy.loginfo(f"Start moving forward {gate_forward_distance} m")
-   rc.go_forward_distance(gate_forward_distance)
-   rospy.loginfo(f"Moved {gate_forward_distance} m")
-   
-   print("[INFO] GATE MISSION COMPLETE")
-   # set event flag for gate mission to True
-   eventflags[1] = True
-  """ """To stop mission type e"""
-"""
-except KeyboardInterrupt as e:
-   rospy.logwarn("Skipping current mission")
-   eventflags[0] = True
-   eventflags[1] = True
-except Exception as e:
-   rospy.logerr("ERROR OCCUR IN GATE MISSION")
-   rospy.logerr(e)
-   eventflags[0] = True
-   eventflags[1] = True
-"""
-rc.movement(roll=-3)
-rospy.logerr("Roll is complete :)")
+#"""MODEMS"""
 
-"""MODEMS"""
 """
 try:
     intersubMission = intersub_com_mission.intersubComMission(robotControl=rc)
@@ -102,16 +73,27 @@ except Exception as e:
     rospy.logerr(e)
     eventflags[3] = True 
 """
-"""ROLL MANEUVER"""
-"""
+"""RETURN HOME"""
 try:
-    intersubMission.do_roll()  # <-- Execute roll here
+    rc.go_to_heading(return_heading)
+    rc.go_forward_distance(2)
+    rospy.loginfo("RETURN HOME COMPLETE")
+except Exception as e:
+    rospy.logerr("ERROR OCCUR DURING RETURN HOME")
+    rospy.logerr(e)
+
+"""ROLL MANEUVER"""
+try:
+    intersubMission = intersub_com_mission.intersubComMission(robotControl=rc)
+    intersubMission.do_roll()
+    time.sleep(1.5)  # <-- Execute roll here
 except Exception as e:
     rospy.logerr("ERROR OCCUR DURING ROLL MANEUVER")
     rospy.logerr(e)
-"""    
+    
 
 disarm.disarm()
 rc.exit()
+
 
 

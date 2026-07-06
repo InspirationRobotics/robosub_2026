@@ -130,9 +130,6 @@ class EKFNode:
             [msg.twist.linear.y],
             [msg.twist.linear.z],
         ])
-        self.dvl_velocity = R_yaw @ v_body
-        self.dvl_valid = True
-        self.last_dvl_time = rospy.Time.now()
 
     def serviceCallback(self, request):
         rospy.loginfo("Recalibrating EKF...")

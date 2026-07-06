@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+import rospy
+import serial
+from std_srvs.srv import Trigger, TriggerResponse
+
+class LED:
+    def __init__(self):
+        rospy.init_node("LED_node", anonymous=True)
+        
+        # Connect to the Arduino (Adjust /dev/ttyUSB1 to your actual port)
+        try:
+            self.ser = serial.Serial('/dev/ttyUSB1', 9600, timeout=1)
+            self.enabled = True
+            rospy.loginfo("Arduino bridge connected.")
+        except Exception as e:
+            rospy.logerr(f"Could not connect to Arduino: {e}")
+            self.enabled = False
+
+        # Keep the services exactly the same so your mission code doesn't break
+        self.service_recv = rospy.Service("/auv/devices/LED/received", Trigger, self.on_recv_msg)
+        self.service_send = rospy.Service("/auv/devices/LED/send", Trigger, self.on_send_msg)
+
+        rospy.loginfo("Ready to take LED requests via Arduino bridge.")
+        rospy.spin()
+
+    def on_send_msg(self, request):
+        if self.enabled:
+            # Send '1' to Arduino (which will trigger A1/A0)
+            self.ser.write(b'1')
+            rospy.loginfo("Sent '1' to Arduino for SEND signal.")
+        return TriggerResponse(success=True, message="Signal sent to Arduino.")
+
+    def on_recv_msg(self, request):
+        if self.enabled:
+            # You could send a different character (like '2') if you want 
+            # different blink patterns later!
+            self.ser.write(b'1') 
+            rospy.loginfo("Sent '1' to Arduino for RECEIVE signal.")
+        return TriggerResponse(success=True, message="Signal sent to Arduino.")
+
+if __name__ == "__main__":
+    node = LED()
