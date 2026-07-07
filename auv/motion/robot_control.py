@@ -461,7 +461,7 @@ class RobotControl:
         self.set_absolute_z(target)
         while abs(target - self.position['z']) > 0.1:
             rospy.loginfo(f"Going to depth: {target} | current depth: {self.position['z']}")
-            time.sleep(1/20) # 20hz
+            time.sleep(1/5) # 20hz, this thing suck it now 5hz
   
     def go_forward_distance(self, target: float):
         """
