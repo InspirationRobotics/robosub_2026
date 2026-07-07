@@ -54,7 +54,7 @@ class CV:
             yaw = 0.55
         else:
             yaw = 0
-            forward = 2.0
+            forward = 1
 
         return forward, yaw
 
