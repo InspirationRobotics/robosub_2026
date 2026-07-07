@@ -1,18 +1,22 @@
 """
-Template file to create a mission class
+Octagon Approach Mission. The goal is to find the Octagon, and then switch to bottom facing camera to align with the center 
+of the platform before surfacing.
+
+NOTE: We could just use DVL to get inside the Octagon range if that works consistently enough.
 """
 
 import json
 
 import rospy
+import time
 from std_msgs.msg import String
 
-from ..device import cv_handler # For running mission-specific CV scripts
-from ..motion import robot_control # For running the motors on the sub
-from ..utils import disarm
+from auv.device import cv_handler # For running mission-specific CV scripts
+from auv.motion import robot_control # For running the motors on the sub
+from auv.utils import arm, disarm
 
-class bintestApproachMission:
-    cv_files = ["bin_test_cv"] # CV file to run
+class BinsDropMission:
+    cv_files = ["2026_bins_drop_cv"] # CV file to run
 
     def __init__(self, target=None, **config):
         """
@@ -33,7 +37,9 @@ class bintestApproachMission:
         for file_name in self.cv_files:
             self.cv_handler.start_cv(file_name, self.callback)
 
-       
+        self.cv_handler.set_target("octagon_approach_cv", target)
+        print("[INFO] octagon Approach Mission Init")
+        self.robot_control.go_to_depth(0.4)
 
     def callback(self, msg):
         """
@@ -47,14 +53,13 @@ class bintestApproachMission:
         self.next_data[file_name] = data 
         self.received = True
 
-        print(f"[DEBUG] Received data from {file_name}")
+        # print(f"[DEBUG] Received data from {file_name}")
 
     def run(self):
         """
         Here should be all the code required to run the mission.
         This could be a loop, a finite state machine, etc.
         """
-
         while not rospy.is_shutdown():
             time.sleep(0.05)
             if not self.received:
@@ -71,20 +76,28 @@ class bintestApproachMission:
             self.next_data = {}
 
             # Do something with the data.
-            lateral = self.data["template_cv"].get("lateral", None)
-            forward = self.data["template_cv"].get("forward", None)
-            yaw = self.data["template_cv"].get("yaw", None)
-            end = self.data["template_cv"].get("end", None)
+            lateral = self.data["2026_bins_drop_cv"].get("lateral", None)
+            forward = self.data["2026_bins_drop_cv"].get("forward", None)
+            yaw = self.data["2026_bins_drop_cv"].get("yaw", None)
+            vertical = self.data["2026_bins_drop_cv"].get("vertical", None)
+            drop = self.data["2026_bins_drop_cv"].get("drop", None)
+            end = self.data["2026_bins_drop_cv"].get("end", None)
 
             if end:
-                print("Ending")
+                print("Bins is OVER")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
                 break
+            elif drop:
+                try:
+                    self.rc.move_servo("/auv/device/dropper")
+                except:
+                    print('no servo')
             else:
-                self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw)
-                print(forward, lateral, yaw) 
+                self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
+                print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
 
-        print("[INFO] Template mission run")
+
+        
 
     def cleanup(self):
         """
@@ -96,7 +109,7 @@ class bintestApproachMission:
 
         # Idle the robot
         self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
-        print("[INFO] Template mission terminate")
+        print("[INFO] Bins drop mission terminate")
 
 
 if __name__ == "__main__":
@@ -106,8 +119,8 @@ if __name__ == "__main__":
     # You can also import it in a mission file outside of the package
     import time
     from auv.utils import deviceHelper
-
-    rospy.init_node("template_mission", anonymous=True)
+    from auv.motion import robot_control
+    rospy.init_node("2026_bin_drop_mission", anonymous=True)
 
     config = deviceHelper.variables
     config.update(
@@ -118,8 +131,13 @@ if __name__ == "__main__":
     )
 
     # Create a mission object with arguments
-    mission = TemplateMission(**config)
+    mission = BinsDropMission(**config)
 
     # Run the mission
+
+    arm.arm()
+
     mission.run()
     mission.cleanup()
+
+    disarm.disarm()
