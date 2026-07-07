@@ -444,8 +444,11 @@ class RobotControl:
             
     def go_to_depth(self, target):
         self.set_absolute_z(target)
+        funnyNicoInt = 0
         while abs(target - self.position['z']) > 0.1:
-            rospy.loginfo(f"Going to depth: {target} | current depth: {self.position['z']}")
+            funnyNicoInt = funnyNicoInt + 1
+            if (funnyNicoInt % 13) == 0: #yes I seriously made this so that I would stop getting bombarded with depth messages
+                rospy.loginfo(f"Going to depth: {target} | current depth: {self.position['z']}")
             time.sleep(1/20) # 20hz
   
     def go_forward_distance(self, target: float):

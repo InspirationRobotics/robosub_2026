@@ -31,7 +31,7 @@ class CV:
         self.x_midpoint = self.shape[0]/2
         self.y_midpoint = self.shape[1]/2
 
-        self.tolerance = 120 # Pixels
+        self.tolerance = 240 # Pixels incrased from 120 to help with tolerance
 
         self.prev_detected = False
         self.state = None
@@ -49,9 +49,9 @@ class CV:
         forward = 0
         # Yaw cannot go below 0.5
         if detection_x < self.x_midpoint - self.tolerance:
-            yaw = -0.75
+            yaw = -0.55 #dec from .75 due try preventing constant yawing
         elif detection_x > self.x_midpoint + self.tolerance:
-            yaw = 0.75
+            yaw = 0.55
         else:
             yaw = 0
             forward = 2.0
