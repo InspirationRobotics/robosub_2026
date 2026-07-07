@@ -90,6 +90,8 @@ class BinsDropMission:
             elif drop:
                 try:
                     self.rc.move_servo("/auv/device/dropper")
+                    time.sleep(0.5)
+                    self.rc.move_servo("/auv/device/dropper")
                 except:
                     print('no servo')
             else:
