@@ -12,9 +12,9 @@ from std_msgs.msg import String
 from auv.device import cv_handler # For running mission-specific CV scripts
 from auv.motion import robot_control # For running the motors on the sub
 from auv.utils import arm, disarm
-
+from auv.mission import bins_drop2026_mission
 class BinsApproachMission:
-    cv_files = ["2026_bins_approach_cv"] # CV file to run
+    cv_files = ["bins_approach2026_cv"] # CV file to run
 
     def __init__(self, target=None, **config):
         """
@@ -76,11 +76,11 @@ class BinsApproachMission:
             self.next_data = {}
 
             # Do something with the data.
-            lateral = self.data["octagon_approach_cv"].get("lateral", None)
-            forward = self.data["octagon_approach_cv"].get("forward", None)
-            yaw = self.data["octagon_approach_cv"].get("yaw", None)
-            vertical = self.data["octagon_approach_cv"].get("vertical", None)
-            end = self.data["octagon_approach_cv"].get("end", None)
+            lateral = self.data["bins_approach2026_cv"].get("lateral", None)
+            forward = self.data["bins_approach2026_cv"].get("forward", None)
+            yaw = self.data["bins_approach2026_cv"].get("yaw", None)
+            vertical = self.data["bins_approach2026_cv"].get("vertical", None)
+            end = self.data["bins_approach2026_cv"].get("end", None)
 
             if end:
                 print("No More Bins Detecting Moving Forward")
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     import time
     from auv.utils import deviceHelper
     from auv.motion import robot_control
-    rospy.init_node("octagon_approach_mission", anonymous=True)
+    rospy.init_node("bins_approach2026_mission", anonymous=True)
 
     config = deviceHelper.variables
     config.update(
@@ -140,12 +140,15 @@ if __name__ == "__main__":
 
     # Create a mission object with arguments
     mission = BinsApproachMission(**config)
-
+    mission2 = BinsDropMission(**config)
     # Run the mission
 
     arm.arm()
 
     mission.run()
     mission.cleanup()
+    #Use below to run drop mission if you want
+    #mission2.run()
+    #mission2.cleanup()
 
     disarm.disarm()

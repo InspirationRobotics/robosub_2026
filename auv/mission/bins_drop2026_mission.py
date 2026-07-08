@@ -14,7 +14,7 @@ from auv.motion import robot_control # For running the motors on the sub
 from auv.utils import arm, disarm
 
 class BinsDropMission:
-    cv_files = ["2026_bins_drop_cv"] # CV file to run
+    cv_files = ["bins_drop2026_cv"] # CV file to run
 
     def __init__(self, target=None, **config):
         """
@@ -35,8 +35,7 @@ class BinsDropMission:
         for file_name in self.cv_files:
             self.cv_handler.start_cv(file_name, self.callback)
 
-        self.cv_handler.set_target("octagon_approach_cv", target)
-        print("[INFO] octagon Approach Mission Init")
+        self.cv_handler.set_target("bins_drop2026_cv", target)
         self.robot_control.go_to_depth(0.4)
 
     def callback(self, msg):
@@ -74,12 +73,12 @@ class BinsDropMission:
             self.next_data = {}
 
             # Do something with the data.
-            lateral = self.data["2026_bins_drop_cv"].get("lateral", None)
-            forward = self.data["2026_bins_drop_cv"].get("forward", None)
-            yaw = self.data["2026_bins_drop_cv"].get("yaw", None)
-            vertical = self.data["2026_bins_drop_cv"].get("vertical", None)
-            drop = self.data["2026_bins_drop_cv"].get("drop", None)
-            end = self.data["2026_bins_drop_cv"].get("end", None)
+            lateral = self.data["bins_drop2026_cv"].get("lateral", None)
+            forward = self.data["bins_drop2026_cv"].get("forward", None)
+            yaw = self.data["bins_drop2026_cv"].get("yaw", None)
+            vertical = self.data["bins_drop2026_cv"].get("vertical", None)
+            drop = self.data["bins_drop2026_cv"].get("drop", None)
+            end = self.data["bins_drop2026_cv"].get("end", None)
 
             if end:
                 print("Bins is OVER")
@@ -92,6 +91,7 @@ class BinsDropMission:
                     self.rc.move_servo("/auv/device/dropper")
                 except:
                     print('no servo')
+                break
             else:
                 self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
                 print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     import time
     from auv.utils import deviceHelper
     from auv.motion import robot_control
-    rospy.init_node("2026_bin_drop_mission", anonymous=True)
+    rospy.init_node("bins_drop2026_cv", anonymous=True)
 
     config = deviceHelper.variables
     config.update(
