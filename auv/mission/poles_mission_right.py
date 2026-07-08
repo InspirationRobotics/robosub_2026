@@ -61,7 +61,8 @@ class PoleSlalomMission:
         self.cv_handler.start_cv(file_name, self.callback)
 
       self.cv_handler.set_target("poles_cv_right", self.target)
-
+      time.sleep(6)
+    
       self.row_anchor = (self.rc.position['x'], self.rc.position['y'])  # anchor for row 1
 
       while not rospy.is_shutdown():
