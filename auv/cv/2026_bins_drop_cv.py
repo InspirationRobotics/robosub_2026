@@ -131,30 +131,31 @@ class CV:
                 # true positive
                 detection_confidence = 0.65
                 for detection in detections:
-                    if detection.confidence > detection_confidence and detection.confidence > 0.65:
+                    if detection.confidence > detection_confidence:
                         target_x = (detection.xmin + detection.xmax) / 2
                         target_y = (detection.ymin + detection.ymax) / 2
                         detection_confidence = detection.confidence
-
-        if abs(target_x - x_midpoint) < 50 and abs(target_y - y_midpoint) < 50:
+        #if the target_x and target_y are within 50 pixles of the midpoints we are then close to being centered and can drop
+        if abs(target_x - x_midpoint) < 50 and abs(target_y - y_midpoint) < 50: 
+            
             self.drop = True
             self.state = None
-            #below lines are redundant but make it easier to understand
+            #since we are dropping we hold the sub in place (lines redundant)
             forward = 0
             lateral = 0
             yaw = 0
             vertical = 0
+        #If no detection is made we enter search mode, if we have a detection then we enter centering mode
         if target_x is None or target_y is None:
             self.state = "search"
         else:
             self.prev_detected = True
             self.state = "centering"
 
+
         if self.state == "search":
             #improve later
             forward = 0.2
-            
-            
 
         if self.state == "centering":
             print("[DEBUG] centering now!")
@@ -164,11 +165,12 @@ class CV:
             
 
         # Continuously return motion commands, the state of the mission, and the visualized frame.
-        return {
+        motion_commands_and_state = {
             "lateral": lateral,
             "forward": forward, 
             "yaw": yaw, 
             "vertical" : vertical, 
             "end": self.end, 
             "drop": self.drop
-            }, frame
+            }
+        return motion_commands_and_state, frame
