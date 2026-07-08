@@ -15,7 +15,7 @@ class CV:
 
     # Camera to get the camera stream from.
     camera = "/auv/camera/videoOAKdRawForward"
-    model = "octagon74" #change name 
+    model = "bins_structure" #change name 
 
     def __init__(self, **config):
         """
@@ -117,7 +117,7 @@ class CV:
                 # true positive
                 detection_confidence = 0.65
                 for detection in detections:
-                    if detection.confidence > detection_confidence and detection.confidence > 0.65:
+                    if detection.confidence > detection_confidence:
                         target_x = (detection.xmin + detection.xmax) / 2
                         target_y = (detection.ymin + detection.ymax) / 2
                         detection_confidence = detection.confidence

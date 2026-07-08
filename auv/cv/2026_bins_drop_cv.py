@@ -14,7 +14,7 @@ class CV:
 
     # Camera to get the camera stream from.
     camera = "/auv/camera/videoOAKdRawBottom"
-    model = "binsNico" # Change later once data is collected for the platform
+    model = "bins_icon" # Change later once data is collected for the platform
 
     def __init__(self, **config):
         """

@@ -15,7 +15,7 @@ from auv.device import cv_handler # For running mission-specific CV scripts
 from auv.motion import robot_control # For running the motors on the sub
 from auv.utils import arm, disarm
 
-class OctagonApproachMission:
+class BinsApproachMission:
     cv_files = ["2026_bins_approach_cv"] # CV file to run
 
     def __init__(self, target=None, **config):
@@ -85,8 +85,9 @@ class OctagonApproachMission:
             end = self.data["octagon_approach_cv"].get("end", None)
 
             if end:
-                print("[INFO] Ending Octagon Approach CV")
-                self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
+                print("No More Bins Detecting Moving Forward")
+                self.robot_control.movement(lateral = 0, forward = 0.5, yaw = 0)
+                time.sleep(1) #change time to have the offset movement
                 break
             else:
                 self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
@@ -140,7 +141,7 @@ if __name__ == "__main__":
     )
 
     # Create a mission object with arguments
-    mission = OctagonApproachMission(**config)
+    mission = BinsApproachMission(**config)
 
     # Run the mission
 
