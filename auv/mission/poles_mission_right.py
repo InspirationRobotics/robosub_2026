@@ -29,14 +29,11 @@ class PoleSlalomMission:
       self.cv_handler = cv_handler.CVHandler(**self.config)
       self.row_count = 0
       self.end = False
+      self.target = target
       
       self.row_anchor = None
       self.returning_to_anchor = False
 
-      for file_name in self.cv_files:
-          self.cv_handler.start_cv(file_name, self.callback)
-
-      self.cv_handler.set_target("poles_cv_right", target)
       rospy.loginfo("[INFO] Pole Slalom Mission Init")
 
   def callback(self, msg):
@@ -60,6 +57,11 @@ class PoleSlalomMission:
       self.rc.activate_heading_control(True)
       time.sleep(4) # let heading PID settle
       
+      for file_name in self.cv_files:
+        self.cv_handler.start_cv(file_name, self.callback)
+
+      self.cv_handler.set_target("poles_cv_right", self.target)
+
       self.row_anchor = (self.rc.position['x'], self.rc.position['y'])  # anchor for row 1
 
       while not rospy.is_shutdown():
@@ -91,31 +93,31 @@ class PoleSlalomMission:
                   rospy.loginfo("Pole Slalom mission timed out.")
                   break
               else: #cv was successful
+                  rospy.loginfo(f"Attempting row {self.row_count + 1} out of 3")
+
+                  # Stop current CV, do the inter-row move, restart CV fresh
+                  self.cv_handler.stop_cv("poles_cv_right")
+
+                  self.rc.go_lateral_distance(0.75) # strafe right for 0.75m to go between white and red pole
+                  self.rc.go_forward_distance(1.5) # move forward for 1.25m to get next to the next row of poles
+
+                  # Increase row count by one
+                  self.row_count += 1
+                  self.received = False
+                  self.data = {}
+                  self.row_anchor = (self.rc.position['x'], self.rc.position['y']) # reset anchor for new row
+                  self.returning_to_anchor = False
+                  
                   if self.row_count==3: # navigated through all three rows successfully
-                      rospy.loginfo("Pole Slalom Mission completed")
-                      break
-                  else: # still have more rows to navigate through, reset for next row
-                      rospy.loginfo(f"Attempting row {self.row_count + 1} out of 3")
+                    rospy.loginfo("All 3 rows completed")
+                    break
+                  
+                  # Restart CV so end=False and state="searching" are fresh
+                  self.cv_handler.start_cv("poles_cv_right", self.callback)
+                  self.cv_handler.set_target("poles_cv_right", None)
 
-                      # Stop current CV, do the inter-row move, restart CV fresh
-                      self.cv_handler.stop_cv("poles_cv_right")
-
-                      self.rc.go_lateral_distance(0.75) # strafe right for 0.75m to go between white and red pole
-                      self.rc.go_forward_distance(1.5) # move forward for 1.25m to get next to the next row of poles
-
-                      # Increase row count by one
-                      self.row_count += 1
-                      self.received = False
-                      self.data = {}
-                      self.row_anchor = (self.rc.position['x'], self.rc.position['y']) # reset anchor for new row
-                      self.returning_to_anchor = False
-
-                      # Restart CV so end=False and state="searching" are fresh
-                      self.cv_handler.start_cv("poles_cv_right", self.callback)
-                      self.cv_handler.set_target("poles_cv_right", None)
-
-                      # print status
-                      rospy.loginfo(f"Current row: {self.row_count}")
+                  # print status
+                  rospy.loginfo(f"Current row: {self.row_count}")
 
           else: # still running cv script, take in the movement commands
               if state == "searching":
@@ -132,10 +134,6 @@ class PoleSlalomMission:
                         lateral = 1.0   # opposite sign of the CV's search-lateral (-1)
                     
               self.rc.movement(lateral=lateral)
-
-      # END OF WHILE LOOP
-      self.rc.go_forward_distance(1.5) # Exit the slalom course by moving forward for 1.5m
-      rospy.loginfo("Pole Slalom mission run complete")
 
   def cleanup(self):
       """
@@ -160,6 +158,3 @@ if __name__ == "__main__":
   mission.run()
   mission.cleanup()
   disarm.disarm()
-
-
-
