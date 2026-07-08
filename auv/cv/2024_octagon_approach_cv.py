@@ -15,7 +15,7 @@ class CV:
 
     # Camera to get the camera stream from.
     camera = "/auv/camera/videoOAKdRawForward"
-    model = "octagon74" 
+    model = "octagon77" 
 
     def __init__(self, **config):
         """
