@@ -134,15 +134,8 @@ class PoleSlalomMission:
                         lateral = 1.0   # opposite sign of the CV's search-lateral (-1)
                     
               self.rc.movement(lateral=lateral)
-
-  def cleanup(self):
-      """
-      Clean up after the mission.
-      """
-      for file_name in self.cv_files:
-          self.cv_handler.stop_cv(file_name)
-
-      self.rc.movement(lateral=0, forward=0, yaw=0)
+              
+      # End of while loop
       print("[INFO] Pole Slalom mission terminated")
 
 if __name__ == "__main__":
@@ -156,5 +149,4 @@ if __name__ == "__main__":
 
   mission = PoleSlalomMission(rc = rc, **config)
   mission.run()
-  mission.cleanup()
   disarm.disarm()
