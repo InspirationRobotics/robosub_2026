@@ -87,10 +87,11 @@ class OctagonApproachMission:
             if end:
                 print("[INFO] Ending Octagon Approach CV")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
+                self.robot_control.go_forward_distance(1) #1 meter distance offset, change based on how sub does 
                 break
             else:
                 self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
-                # print(forward, lateral, yaw)
+                print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
 
         # first_time = time.time()
         # while time.time() - first_time < 2:
@@ -99,9 +100,9 @@ class OctagonApproachMission:
         # Surfacing and resubmerging
         for i in range(2):
             if i == False:
-                self.robot_control.set_depth(0.0)
+                self.robot_control.go_to_depth(0.0)
             elif i == True:
-                self.robot_control.set_depth(0.7)
+                self.robot_control.go_to_depth(0.7)
             start_time = time.time()
             while time.time() - start_time < 7:
                 pass
