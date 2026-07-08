@@ -84,6 +84,7 @@ class BinsApproachMission:
 
             if end:
                 print("No More Bins Detecting Moving Forward")
+                self.robot_control.movement(0,0,0)
                 self.robot_control.go_forward_distance(1.5) #edit distance based on how mission runs (input in meters)
                 break
             else:
