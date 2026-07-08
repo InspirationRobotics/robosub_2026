@@ -99,7 +99,11 @@ class PoleSlalomMission:
                   # Stop current CV, do the inter-row move, restart CV fresh
                   self.cv_handler.stop_cv("poles_cv_right")
 
-                  self.rc.go_lateral_distance(0.5) # strafe right for 0.75m to go between white and red pole
+                  self.rc.movement(lateral=2)
+                  time.sleep(5)
+                  self.rc.movement()
+                
+                  #self.rc.go_lateral_distance(0.5) # strafe right for 0.75m to go between white and red pole
                   self.rc.go_forward_distance(1.75) # move forward for 1.75m to get next to the next row of poles
 
                   # Increase row count by one
