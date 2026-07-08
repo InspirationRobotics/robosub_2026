@@ -1,6 +1,8 @@
 """
-bins_drop_mission: for now this code centers on one bin then drops both markers, further implementation to navigate is to be done
-once the base capability of dropping the marker into one bin is sucessful
+Octagon Approach Mission. The goal is to find the Octagon, and then switch to bottom facing camera to align with the center 
+of the platform before surfacing.
+
+NOTE: We could just use DVL to get inside the Octagon range if that works consistently enough.
 """
 
 import json
@@ -13,8 +15,8 @@ from auv.device import cv_handler # For running mission-specific CV scripts
 from auv.motion import robot_control # For running the motors on the sub
 from auv.utils import arm, disarm
 
-class BinsDropMission:
-    cv_files = ["2026_bins_drop_cv"] # CV file to run
+class OctagonApproachMission:
+    cv_files = ["2026_bins_approach_cv"] # CV file to run
 
     def __init__(self, target=None, **config):
         """
@@ -37,8 +39,7 @@ class BinsDropMission:
 
         self.cv_handler.set_target("octagon_approach_cv", target)
         print("[INFO] octagon Approach Mission Init")
-        self.robot_control.go_to_depth(0.4)
-
+        self.robot_control.go_to_depth(0.5)
     def callback(self, msg):
         """
         Calls back the cv_handler output -- you can have multiple callbacks for multiple CV handlers. Converts the output into JSON format.
@@ -58,6 +59,9 @@ class BinsDropMission:
         Here should be all the code required to run the mission.
         This could be a loop, a finite state machine, etc.
         """
+        #self.robot_control.go_to_depth(0.5) <- this is done in __init__ line 42
+        #rc = robot_control.RobotControl()
+        #rc.rc.go_to_depth(1)
         while not rospy.is_shutdown():
             time.sleep(0.05)
             if not self.received:
@@ -74,30 +78,35 @@ class BinsDropMission:
             self.next_data = {}
 
             # Do something with the data.
-            lateral = self.data["2026_bins_drop_cv"].get("lateral", None)
-            forward = self.data["2026_bins_drop_cv"].get("forward", None)
-            yaw = self.data["2026_bins_drop_cv"].get("yaw", None)
-            vertical = self.data["2026_bins_drop_cv"].get("vertical", None)
-            drop = self.data["2026_bins_drop_cv"].get("drop", None)
-            end = self.data["2026_bins_drop_cv"].get("end", None)
+            lateral = self.data["octagon_approach_cv"].get("lateral", None)
+            forward = self.data["octagon_approach_cv"].get("forward", None)
+            yaw = self.data["octagon_approach_cv"].get("yaw", None)
+            vertical = self.data["octagon_approach_cv"].get("vertical", None)
+            end = self.data["octagon_approach_cv"].get("end", None)
 
             if end:
-                print("Bins is OVER")
+                print("[INFO] Ending Octagon Approach CV")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
                 break
-            elif drop:
-                try:
-                    self.rc.move_servo("/auv/device/dropper")
-                    time.sleep(0.5)
-                    self.rc.move_servo("/auv/device/dropper")
-                except:
-                    print('no servo')
             else:
                 self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
                 print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
 
+        # first_time = time.time()
+        # while time.time() - first_time < 2:
+        #     self.robot_control.movement(forward=2)
 
-        
+        # Surfacing and resubmerging
+        for i in range(2):
+            if i == False:
+                self.robot_control.set_depth(0.0)
+            elif i == True:
+                self.robot_control.set_depth(0.7)
+            start_time = time.time()
+            while time.time() - start_time < 7:
+                pass
+
+        print("[INFO] Octagon approach mission terminated")
 
     def cleanup(self):
         """
@@ -109,7 +118,7 @@ class BinsDropMission:
 
         # Idle the robot
         self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
-        print("[INFO] Bins drop mission terminate")
+        print("[INFO] Octagon approach mission terminate")
 
 
 if __name__ == "__main__":
@@ -120,7 +129,7 @@ if __name__ == "__main__":
     import time
     from auv.utils import deviceHelper
     from auv.motion import robot_control
-    rospy.init_node("2026_bin_drop_mission", anonymous=True)
+    rospy.init_node("octagon_approach_mission", anonymous=True)
 
     config = deviceHelper.variables
     config.update(
@@ -131,7 +140,7 @@ if __name__ == "__main__":
     )
 
     # Create a mission object with arguments
-    mission = BinsDropMission(**config)
+    mission = OctagonApproachMission(**config)
 
     # Run the mission
 
