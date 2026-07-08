@@ -32,7 +32,6 @@ class PoleSlalomMission:
       
       self.row_anchor = None
       self.returning_to_anchor = False
-      self.initial_heading = self.rc.get_heading()
 
       for file_name in self.cv_files:
           self.cv_handler.start_cv(file_name, self.callback)
@@ -51,13 +50,13 @@ class PoleSlalomMission:
       Run the pole slalom mission loop.
       """
       rospy.loginfo("Pole Slalom mission running")
-
+      heading = self.rc.get_heading()
       self.rc.set_flight_mode("STABILIZE") # prevents pitch and roll movement
       self.rc.set_control_mode("depth_hold")
       self.rc.go_to_depth(0.6)  # change this based on the depth of the pool
       time.sleep(1)  # let depth hold and flight mode settle
       
-      self.rc.go_to_heading(self.initial_heading)  # set heading to 0 degrees (facing the slalom)
+      self.rc.go_to_heading(heading)  # set heading to 0 degrees (facing the slalom)
       self.rc.activate_heading_control(True)
       time.sleep(4) # let heading PID settle
       
@@ -65,9 +64,6 @@ class PoleSlalomMission:
 
       while not rospy.is_shutdown():
           time.sleep(0.05)
-          current_heading = self.rc.get_heading()
-          if abs(current_heading - self.initial_heading) > 5:
-              self.rc.go_to_heading(self.initial_heading)
           if not self.received:
               rospy.logwarn("Did not receive frame")
               continue
@@ -127,13 +123,13 @@ class PoleSlalomMission:
                         (self.rc.position['x'], self.rc.position['y']),
                         self.row_anchor)
                     
-                    if not self.returning_to_anchor and displacement > 1.0:
+                    if not self.returning_to_anchor and displacement > 2.0:
                         self.returning_to_anchor = True
                     elif self.returning_to_anchor and displacement < 0.3:
                         self.returning_to_anchor = False
 
                     if self.returning_to_anchor:
-                        lateral = 1.5   # opposite sign of the CV's search-lateral (-1)
+                        lateral = 1.0   # opposite sign of the CV's search-lateral (-1)
                     
               self.rc.movement(lateral=lateral)
 
