@@ -87,6 +87,7 @@ class OctagonApproachMission:
             if end:
                 print("[INFO] Ending Octagon Approach CV")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
+                self.robot_control.go_forward_distance(1) #1 meter distance offset, change based on how sub does 
                 break
             else:
                 self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
