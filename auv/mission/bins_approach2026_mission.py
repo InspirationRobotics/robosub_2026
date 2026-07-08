@@ -37,7 +37,7 @@ class BinsApproachMission:
 
         self.cv_handler.set_target("octagon_approach_cv", target)
         print("[INFO] octagon Approach Mission Init")
-        self.robot_control.go_to_depth(0.5)
+        self.robot_control.go_to_depth(0.3)
     def callback(self, msg):
         """
         Calls back the cv_handler output -- you can have multiple callbacks for multiple CV handlers. Converts the output into JSON format.
@@ -84,8 +84,7 @@ class BinsApproachMission:
 
             if end:
                 print("No More Bins Detecting Moving Forward")
-                self.robot_control.movement(lateral = 0, forward = 0.5, yaw = 0)
-                time.sleep(1) #change time to have the offset movement
+                self.robot_control.go_forward_distance(1.5) #edit distance based on how mission runs (input in meters)
                 break
             else:
                 self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
@@ -95,15 +94,8 @@ class BinsApproachMission:
         # while time.time() - first_time < 2:
         #     self.robot_control.movement(forward=2)
 
-        # Surfacing and resubmerging
-        for i in range(2):
-            if i == False:
-                self.robot_control.set_depth(0.0)
-            elif i == True:
-                self.robot_control.set_depth(0.7)
-            start_time = time.time()
-            while time.time() - start_time < 7:
-                pass
+        
+       
 
         print("[INFO] Octagon approach mission terminated")
 
