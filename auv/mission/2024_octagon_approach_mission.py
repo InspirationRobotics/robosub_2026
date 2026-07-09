@@ -29,7 +29,7 @@ class OctagonApproachMission:
         self.data = {}  # Dictionary to store the data from the CV handler
         self.next_data = {}  # Dictionary to store the newest data from the CV handler; this data will be merged with self.data.
         self.received = False
-
+        self.end_heading = None
         self.robot_control = robot_control.RobotControl()
         self.cv_handler = cv_handler.CVHandler(**self.config)
 
@@ -87,6 +87,12 @@ class OctagonApproachMission:
             vertical = self.data["2024_octagon_approach_cv"].get("vertical", None)
             end = self.data["2024_octagon_approach_cv"].get("end", None)
 
+            #later add code that using the stored heading to go forward a little bit
+            
+            #store_heading = self.data["2024_octagon_approach_cv"].get("store_heading", None)
+
+            if store_heading == True:
+                self.end_heading = robot_control.get_heading()
             if end:
                 print("[INFO] Ending Octagon Approach CV")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
