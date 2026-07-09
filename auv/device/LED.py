@@ -1,5 +1,5 @@
 import time
-import RPi.GPIO as GPIO
+import Jetson.GPIO as GPIO
 import serial
 import threading
 import rospy
@@ -14,7 +14,7 @@ class LED:
         Initialize the LED class; establishes the Jetson pin to light up when receiving (32) and sending (31) messages.
         """
         try:
-            import RPi.GPIO as GPIO
+            import Jetson.GPIO as GPIO
             self.enabled = True
             rospy.init_node("LED_node", anonymous=True)  
 
@@ -63,7 +63,7 @@ class LED:
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.r_pin, GPIO.OUT)
         GPIO.output(self.r_pin, GPIO.HIGH)
-        time.sleep(0.1)
+        time.sleep(1.0)
         self.clean()
 
         return TriggerResponse(
