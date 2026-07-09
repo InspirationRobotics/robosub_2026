@@ -136,7 +136,7 @@ class CV:
                         target_y = (detection.ymin + detection.ymax) / 2
                         detection_confidence = detection.confidence
         #if the target_x and target_y are within 50 pixles of the midpoints we are then close to being centered and can drop
-        if abs(target_x - x_midpoint) < 50 and abs(target_y - y_midpoint) < 50: 
+        if abs(target_x - self.x_midpoint) < 50 and abs(target_y - self.y_midpoint) < 50: 
             
             self.drop = True
             self.state = None
