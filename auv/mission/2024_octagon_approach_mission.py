@@ -29,17 +29,21 @@ class OctagonApproachMission:
         self.data = {}  # Dictionary to store the data from the CV handler
         self.next_data = {}  # Dictionary to store the newest data from the CV handler; this data will be merged with self.data.
         self.received = False
-        self.end_heading = None
+
         self.robot_control = robot_control.RobotControl()
         self.cv_handler = cv_handler.CVHandler(**self.config)
 
+        self.robot_control.go_to_depth(0.4)
+
+        time.sleep(5)
+        
         # Initialize the CV handlers; dummys are used to input a video file instead of the camera stream as data for the CV script to run on
         for file_name in self.cv_files:
             self.cv_handler.start_cv(file_name, self.callback)
 
-        self.cv_handler.set_target("octagon_approach_cv", target)
+        self.cv_handler.set_target("2024_octagon_approach_cv", target)
         print("[INFO] octagon Approach Mission Init")
-        self.robot_control.go_to_depth(0.4)
+        
     def callback(self, msg):
         """
         Calls back the cv_handler output -- you can have multiple callbacks for multiple CV handlers. Converts the output into JSON format.
@@ -78,24 +82,19 @@ class OctagonApproachMission:
             self.next_data = {}
 
             # Do something with the data.
-            lateral = self.data["octagon_approach_cv"].get("lateral", None)
-            forward = self.data["octagon_approach_cv"].get("forward", None)
-            yaw = self.data["octagon_approach_cv"].get("yaw", None)
-            vertical = self.data["octagon_approach_cv"].get("vertical", None)
-            end = self.data["octagon_approach_cv"].get("end", None)
+            lateral = self.data["2024_octagon_approach_cv"].get("lateral", None)
+            forward = self.data["2024_octagon_approach_cv"].get("forward", None)
+            yaw = self.data["2024_octagon_approach_cv"].get("yaw", None)
+            vertical = self.data["2024_octagon_approach_cv"].get("vertical", None)
+            end = self.data["2024_octagon_approach_cv"].get("end", None)
 
-            #later add code that using the stored heading to go forward a little bit
-            store_heading = False
-            #store_heading = self.data["2024_octagon_approach_cv"].get("store_heading", None)
-
-            if store_heading == True:
-                self.end_heading = robot_control.get_heading()
             if end:
                 print("[INFO] Ending Octagon Approach CV")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
-                self.robot_control.go_forward_distance(1) #1 meter distance offset, change based on how sub does 
+                #self.robot_control.go_forward_distance(1) #1 meter distance offset, change based on how sub does 
                 break
             else:
+                #lateral = 0; yaw = 0; forward = 1
                 self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
                 print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
 
@@ -112,7 +111,8 @@ class OctagonApproachMission:
             start_time = time.time()
             while time.time() - start_time < 7:
                 pass
-
+        print('10 sec sleep')
+        time.sleep(10)
         print("[INFO] Octagon approach mission terminated")
 
     def cleanup(self):
@@ -152,7 +152,6 @@ if __name__ == "__main__":
     # Run the mission
 
     arm.arm()
-
     mission.run()
     mission.cleanup()
 
