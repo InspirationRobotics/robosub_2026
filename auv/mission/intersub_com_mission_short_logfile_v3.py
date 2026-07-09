@@ -120,7 +120,7 @@ class intersubComMission:
 
             self.log_event("Onyx sending YAW messages to Graey")
 
-            for i in range(3):
+            for i in range(3): #
                 if self.end:
                     break
 
@@ -131,7 +131,7 @@ class intersubComMission:
 
             time_counter = 0
             while not self.end:
-                if time_counter >= 60:
+                if time_counter >= 20: #change this to 20
                     self.log_event(
                         "Timeout, Onyx did not receive message. Ending mission.",
                         level="warn"

@@ -2,6 +2,7 @@ import time
 import rospy
 
 from std_msgs.msg import String
+from std_srvs.srv import Trigger
 from auv.utils import deviceHelper
 
 
@@ -9,23 +10,24 @@ class intersubComMission:
     def __init__(self, robotControl=None):
         self.rc = robotControl
 
-        self.pub_modem = rospy.Publisher(
-            "/auv/devices/modem/send",
-            String,
-            queue_size=10
-        )
-
-        self.sub_modem = rospy.Subscriber(
-            "/auv/devices/modem/received",
-            String,
-            self.rec_callback
-        )
+        self.pub_modem = rospy.Publisher("/auv/devices/modem/send", String, queue_size=10)
+        self.sub_modem = rospy.Subscriber("/auv/devices/modem/received", String, self.rec_callback)
 
         self.sub = deviceHelper.variables.get("sub")
 
         self.last_msg = None
         self.received_messages = []
         self.message_received = False
+
+        # LED service names.
+        # These services should be provided by the LED node.
+        self.led_send_service_name = "/auv/devices/LED/send"
+        self.led_received_service_name = "/auv/devices/LED/received"
+
+        # Service proxies used to flash the LEDs.
+        # These do not call the service yet. They only create the connection object.
+        self.led_send_srv = rospy.ServiceProxy(self.led_send_service_name, Trigger)
+        self.led_received_srv = rospy.ServiceProxy(self.led_received_service_name, Trigger)
 
     # Logs events to both ROS terminal and coms.log with timestamps.
     # Use this instead of plain rospy.loginfo when tracking modem behavior.
@@ -43,14 +45,42 @@ class intersubComMission:
         with open("coms.log", "a") as file:
             file.write(log_msg + "\n")
 
+    # Flashes either the SEND LED or the RECEIVED LED.
+    # This is safe because if the LED node/service is not running,
+    # it will only log a warning and the mission will keep going.
+    def flash_led(self, led_type):
+        try:
+            if led_type == "send":
+                rospy.wait_for_service(self.led_send_service_name, timeout=0.25)
+                self.led_send_srv()
+                self.log_event("SEND LED flashed")
+
+            elif led_type == "received":
+                rospy.wait_for_service(self.led_received_service_name, timeout=0.25)
+                self.led_received_srv()
+                self.log_event("RECEIVED LED flashed")
+
+            else:
+                self.log_event(f"Unknown LED type requested: {led_type}", level="warn")
+
+        except rospy.ROSException:
+            self.log_event(f"LED service not available for {led_type}", level="warn")
+
+        except rospy.ServiceException as e:
+            self.log_event(f"LED service call failed for {led_type}: {e}", level="warn")
+    
     # Callback that runs automatically whenever a modem message is received.
     # It does not move the robot. It only stores and logs the message.
+    # It also flashes the RECEIVED LED.
     def rec_callback(self, msg):
         self.last_msg = msg.data
         self.received_messages.append(msg.data)
         self.message_received = True
 
         self.log_event(f"Received modem message: {msg.data}")
+
+        # Flash receive LED every time a modem message is received.
+        self.flash_led("received")
 
     # Clears the current receive state before starting a new wait/send cycle.
     # This prevents old messages from accidentally being used as new replies.
@@ -60,10 +90,15 @@ class intersubComMission:
 
     # Sends one modem message to the target address.
     # This is the lowest-level send function.
+    # It also flashes the SEND LED when the send command succeeds.
     def send_modem_message(self, dest_addr, message):
         try:
             self.rc.send_modem(addr=dest_addr, movement=message)
             self.log_event(f"Sent message to {dest_addr}: {message}")
+
+            # Flash send LED every time a modem message is sent.
+            self.flash_led("send")
+
             return True
 
         except Exception as e:
