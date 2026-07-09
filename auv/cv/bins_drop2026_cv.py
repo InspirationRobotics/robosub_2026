@@ -160,7 +160,7 @@ class CV:
         if self.state == "centering":
             print("[DEBUG] centering now!")
             print('target_x and target_y are: ', target_x, target_y)
-            forward, yaw = self.center_to(target_x, target_y)
+            forward, lateral = self.center_to(target_x, target_y)
             self.prev_time = time.time()
             
 
