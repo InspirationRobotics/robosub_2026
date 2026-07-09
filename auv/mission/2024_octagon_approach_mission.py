@@ -88,11 +88,12 @@ class OctagonApproachMission:
             end = self.data["2024_octagon_approach_cv"].get("end", None)
 
             #later add code that using the stored heading to go forward a little bit
-            
-            #store_heading = self.data["2024_octagon_approach_cv"].get("store_heading", None)
+
+            store_heading = self.data["2024_octagon_approach_cv"].get("store_heading", None)
 
             if store_heading == True:
                 self.end_heading = robot_control.get_heading()
+                
             if end:
                 print("[INFO] Ending Octagon Approach CV")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)

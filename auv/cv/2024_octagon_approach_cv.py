@@ -29,12 +29,12 @@ class CV:
         self.shape = (640, 480)
         self.x_midpoint = self.shape[0]/2
         self.y_midpoint = self.shape[1]/2
-
         self.tolerance = 150 # Pixels incrased from 120 to help with tolerance
         self.store_heading = False
+        self.ever_detected = False
         self.prev_detected = False
         self.state = None
-        self.searchdirection = -1 # value is 1 or -1, 1 | 1 is search right -1 is left
+        self.search_direction = -1 # value is 1 or -1, 1 | 1 is search right -1 is left
         self.start_time = None
         self.last_yaw = 0
         self.yaw_time_search = 7 #seconds
@@ -49,10 +49,10 @@ class CV:
         # Yaw cannot go below 0.5
         if detection_x < self.x_midpoint - self.tolerance: #yaw right
             yaw = -0.75 #dec from .75 due try preventing constant yawing
-            #self.searchdirection = 1 #check this and line 55 after unit test
+            #self.search_direction = 1 #check this and line 55 after unit test
         elif detection_x > self.x_midpoint + self.tolerance: #yaw left
             yaw = 0.75
-            #self.searchdirection = -1
+            #self.search_direction = -1
         else:
             yaw = 0
             forward = 1
@@ -90,7 +90,7 @@ class CV:
         # So we do not get a NoneType error
         if detections is None:
             detections = []
-        if len(detections) == 0 and self.prev_detected == False:
+        if len(detections) == 0 and self.ever_detected == False:
             self.state = "search"
             if time.time() - self.prev_time < self.yaw_time_search * 2: #double the serach time if we have not seen anything yet
                 self.state = None
@@ -98,7 +98,7 @@ class CV:
             else:
                 self.end = True
         
-        if len(detections) == 0 and self.prev_detected == True:
+        if len(detections) == 0 and self.ever_detected == True:
             self.state = "search"
             if time.time() - self.prev_time < self.yaw_time_search:
                 self.state = None
@@ -133,18 +133,24 @@ class CV:
         if target_x is None:
             self.state = "search"
         elif target_x is not None and target_y is not None:
-            self.prev_detected = True
+            self.ever_detected = True
             self.state = "approach"
 
         if self.state == "search":
 
+            if self.prev_detected == True: #if we detected last frame then we store the heading for when the mission ends
+                self.store_heading = True
+            else:
+                self.store_heading = False
+            self.prev_detected = False
             #later add code that toggles a set heading if we lost detection earlier
             #Circular Search Favorered over grid
-            yaw = 1 * searchdirection #by default searchdirection is -1
+            yaw = 1 * search_direction #by default search_direction is -1
 
         if self.state == "approach":
             print("[DEBUG] Approaching now!")
             print(target_x)
+            self.prev_detected = True 
             forward, yaw = self.smart_approach(target_x)
             self.prev_time = time.time()
             
