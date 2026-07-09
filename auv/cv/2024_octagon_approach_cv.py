@@ -48,9 +48,11 @@ class CV:
         forward = 0
         # Yaw cannot go below 0.5
         if detection_x < self.x_midpoint - self.tolerance: #yaw right
+            print('yaw right')
             yaw = -0.75 #dec from .75 due try preventing constant yawing
             #self.search_direction = 1 #check this and line 55 after unit test
         elif detection_x > self.x_midpoint + self.tolerance: #yaw left
+            print('yaw left')
             yaw = 0.75
             #self.search_direction = -1
         else:
@@ -145,13 +147,14 @@ class CV:
             self.prev_detected = False
             #later add code that toggles a set heading if we lost detection earlier
             #Circular Search Favorered over grid
-            yaw = 1 * search_direction #by default search_direction is -1
+            yaw = 1 * self.search_direction #by default search_direction is -1
 
         if self.state == "approach":
             print("[DEBUG] Approaching now!")
             print(target_x)
             self.prev_detected = True 
             forward, yaw = self.smart_approach(target_x)
+            print('going forward ', forward)
             self.prev_time = time.time()
             
         print(f"{self.state}")
