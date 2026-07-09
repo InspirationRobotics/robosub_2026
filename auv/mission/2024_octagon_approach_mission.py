@@ -85,7 +85,7 @@ class OctagonApproachMission:
             end = self.data["octagon_approach_cv"].get("end", None)
 
             #later add code that using the stored heading to go forward a little bit
-            
+            store_heading = False
             #store_heading = self.data["2024_octagon_approach_cv"].get("store_heading", None)
 
             if store_heading == True:
