@@ -36,7 +36,8 @@ class BinsDropMission:
             self.cv_handler.start_cv(file_name, self.callback)
 
         self.cv_handler.set_target("bins_drop2026_cv", target)
-        self.robot_control.go_to_depth(0.4)
+
+        #self.robot_control.go_to_depth(0.4)
 
     def callback(self, msg):
         """
