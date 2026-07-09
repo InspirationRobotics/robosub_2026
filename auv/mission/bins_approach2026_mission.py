@@ -13,6 +13,7 @@ from auv.device import cv_handler # For running mission-specific CV scripts
 from auv.motion import robot_control # For running the motors on the sub
 from auv.utils import arm, disarm
 from auv.mission import bins_drop2026_mission
+
 class BinsApproachMission:
     cv_files = ["bins_approach2026_cv"] # CV file to run
 
@@ -29,15 +30,15 @@ class BinsApproachMission:
         self.received = False
 
         self.robot_control = robot_control.RobotControl()
+        self.robot_control.go_to_depth(0.2)
         self.cv_handler = cv_handler.CVHandler(**self.config)
-
+        self.end_heading = 0
         # Initialize the CV handlers; dummys are used to input a video file instead of the camera stream as data for the CV script to run on
         for file_name in self.cv_files:
             self.cv_handler.start_cv(file_name, self.callback)
 
         self.cv_handler.set_target("octagon_approach_cv", target)
         print("[INFO] octagon Approach Mission Init")
-        self.robot_control.go_to_depth(0.3)
     def callback(self, msg):
         """
         Calls back the cv_handler output -- you can have multiple callbacks for multiple CV handlers. Converts the output into JSON format.
@@ -81,19 +82,24 @@ class BinsApproachMission:
             yaw = self.data["bins_approach2026_cv"].get("yaw", None)
             vertical = self.data["bins_approach2026_cv"].get("vertical", None)
             end = self.data["bins_approach2026_cv"].get("end", None)
+            get_heading = self.data["bins_approach2026_cv"].get("get_heading", None)
 
+            if get_heading == True:
+                self.end_heading = self.robot_control.get_heading()
+                get_heading = False
             if end:
-                print("No More Bins Detecting Moving Forward")
-                self.robot_control.movement(0,0,0)
-                self.robot_control.go_forward_distance(1.5) #edit distance based on how mission runs (input in meters)
-                break
+                print("No More Bins Detected")
+                if self.end_heading != True:
+                    return
+                self.robot_control.movement(lateral = 0, forward = 0, yaw = 0 )
+                self.robot_control.go_to_heading(self.end_heading)
+                self.robot_control.go_forward_distance(1) #edit distance based on how mission runs (input in meters)
+                return
             else:
                 self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
                 print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
 
-        # first_time = time.time()
-        # while time.time() - first_time < 2:
-        #     self.robot_control.movement(forward=2)
+       
 
         
        
@@ -133,7 +139,7 @@ if __name__ == "__main__":
 
     # Create a mission object with arguments
     mission = BinsApproachMission(**config)
-    mission2 = BinsDropMission(**config)
+    #mission2 = BinsDropMission(**config)
     # Run the mission
 
     arm.arm()
