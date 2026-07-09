@@ -31,7 +31,7 @@ class CV:
         self.y_midpoint = self.shape[1]/2
 
         self.tolerance = 150 # Pixels incrased from 120 to help with tolerance
-        self.store_heading = False
+
         self.prev_detected = False
         self.state = None
         self.searchdirection = -1 # value is 1 or -1, 1 | 1 is search right -1 is left
@@ -47,12 +47,10 @@ class CV:
         """Function to properly yaw and move forward"""
         forward = 0
         # Yaw cannot go below 0.5
-        if detection_x < self.x_midpoint - self.tolerance: #yaw right
+        if detection_x < self.x_midpoint - self.tolerance:
             yaw = -0.75 #dec from .75 due try preventing constant yawing
-            #self.searchdirection = 1 #check this and line 55 after unit test
-        elif detection_x > self.x_midpoint + self.tolerance: #yaw left
+        elif detection_x > self.x_midpoint + self.tolerance:
             yaw = 0.75
-            #self.searchdirection = -1
         else:
             yaw = 0
             forward = 1
@@ -99,8 +97,7 @@ class CV:
                 self.end = True
         
         if len(detections) == 0 and self.prev_detected == True:
-            self.state = "search"
-            if time.time() - self.prev_time < self.yaw_time_search:
+            if time.time() - self.prev_time < 7:
                 self.state = None
                 forward = 0
             else:
@@ -137,10 +134,8 @@ class CV:
             self.state = "approach"
 
         if self.state == "search":
-
-            #later add code that toggles a set heading if we lost detection earlier
-            #Circular Search Favorered over grid
-            yaw = 1 * searchdirection #by default searchdirection is -1
+            # Scrap search grid in favor of circular search
+            yaw = -1
 
         if self.state == "approach":
             print("[DEBUG] Approaching now!")
@@ -148,6 +143,6 @@ class CV:
             forward, yaw = self.smart_approach(target_x)
             self.prev_time = time.time()
             
-        print(f"{self.state}")
+
         # Continuously return motion commands, the state of the mission, and the visualized frame.
         return {"lateral": lateral, "forward": forward, "yaw": yaw, "vertical" : vertical, "end": self.end, 'store_heading': self.store_heading}, frame
