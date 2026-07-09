@@ -32,7 +32,7 @@ class BinsApproachMission:
         self.robot_control = robot_control.RobotControl()
         self.robot_control.go_to_depth(0.2)
         self.cv_handler = cv_handler.CVHandler(**self.config)
-        self.end_heading = 0
+        self.end_heading = self.robot_control.get_heading()
         # Initialize the CV handlers; dummys are used to input a video file instead of the camera stream as data for the CV script to run on
         for file_name in self.cv_files:
             self.cv_handler.start_cv(file_name, self.callback)
