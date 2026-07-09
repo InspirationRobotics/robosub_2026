@@ -31,7 +31,7 @@ class CV:
         self.x_midpoint = self.shape[0]/2
         self.y_midpoint = self.shape[1]/2
 
-        self.tolerance = 240 # Pixels incrased from 120 to help with tolerance
+        self.tolerance = 150 # Pixels incrased from 120 to help with tolerance
 
         self.prev_detected = False
         self.state = None
@@ -49,9 +49,9 @@ class CV:
         forward = 0
         # Yaw cannot go below 0.5
         if detection_x < self.x_midpoint - self.tolerance:
-            yaw = -0.55 #dec from .75 due try preventing constant yawing
+            yaw = -0.75 #dec from .75 due try preventing constant yawing
         elif detection_x > self.x_midpoint + self.tolerance:
-            yaw = 0.55
+            yaw = 0.75
         else:
             yaw = 0
             forward = 1
@@ -93,7 +93,7 @@ class CV:
             self.state = "search"
         
         if len(detections) == 0 and self.prev_detected == True:
-            if time.time() - self.prev_time < 2:
+            if time.time() - self.prev_time < 7:
                 self.state = None
                 forward = 0
             else:
@@ -131,7 +131,7 @@ class CV:
 
         if self.state == "search":
             # Scrap search grid in favor of circular search
-            yaw = 1
+            yaw = -1
 
         if self.state == "approach":
             print("[DEBUG] Approaching now!")
@@ -139,6 +139,6 @@ class CV:
             forward, yaw = self.smart_approach(target_x)
             self.prev_time = time.time()
             
-
+        print(f"{self.state}")
         # Continuously return motion commands, the state of the mission, and the visualized frame.
         return {"lateral": lateral, "forward": forward, "yaw": yaw, "vertical" : vertical, "end": self.end}, frame

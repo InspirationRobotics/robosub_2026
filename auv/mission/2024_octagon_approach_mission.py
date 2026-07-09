@@ -33,13 +33,16 @@ class OctagonApproachMission:
         self.robot_control = robot_control.RobotControl()
         self.cv_handler = cv_handler.CVHandler(**self.config)
 
+        self.robot_control.go_to_depth(0.4)
+        time.sleep(5)
+        
         # Initialize the CV handlers; dummys are used to input a video file instead of the camera stream as data for the CV script to run on
         for file_name in self.cv_files:
             self.cv_handler.start_cv(file_name, self.callback)
 
-        self.cv_handler.set_target("octagon_approach_cv", target)
+        self.cv_handler.set_target("2024_octagon_approach_cv", target)
         print("[INFO] octagon Approach Mission Init")
-        self.robot_control.go_to_depth(0.4)
+        
     def callback(self, msg):
         """
         Calls back the cv_handler output -- you can have multiple callbacks for multiple CV handlers. Converts the output into JSON format.
@@ -78,16 +81,16 @@ class OctagonApproachMission:
             self.next_data = {}
 
             # Do something with the data.
-            lateral = self.data["octagon_approach_cv"].get("lateral", None)
-            forward = self.data["octagon_approach_cv"].get("forward", None)
-            yaw = self.data["octagon_approach_cv"].get("yaw", None)
-            vertical = self.data["octagon_approach_cv"].get("vertical", None)
-            end = self.data["octagon_approach_cv"].get("end", None)
+            lateral = self.data["2024_octagon_approach_cv"].get("lateral", None)
+            forward = self.data["2024_octagon_approach_cv"].get("forward", None)
+            yaw = self.data["2024_octagon_approach_cv"].get("yaw", None)
+            vertical = self.data["2024_octagon_approach_cv"].get("vertical", None)
+            end = self.data["2024_octagon_approach_cv"].get("end", None)
 
             if end:
                 print("[INFO] Ending Octagon Approach CV")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
-                self.robot_control.go_forward_distance(1) #1 meter distance offset, change based on how sub does 
+                #self.robot_control.go_forward_distance(1) #1 meter distance offset, change based on how sub does 
                 break
             else:
                 self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
