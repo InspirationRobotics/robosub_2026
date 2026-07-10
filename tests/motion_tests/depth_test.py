@@ -6,9 +6,9 @@ from auv.utils import arm, disarm
 
 rospy.init_node("Depth_test", anonymous=True)
 rc = robot_control.RobotControl()
-
 arm.arm()
 
+rc.set_flight_mode('STABILIZE')
 rc.go_to_depth(0.8)
 print("[INFO] Setting depth to 0.4 meters")
 
