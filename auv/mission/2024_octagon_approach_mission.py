@@ -92,15 +92,15 @@ class OctagonApproachMission:
             store_heading = self.data["2024_octagon_approach_cv"].get("store_heading", None)
 
             if store_heading == True:
+                print('storing heading')
                 self.end_heading = robot_control.get_heading()
-                
             if end:
                 print("[INFO] Ending Octagon Approach CV")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
                 #self.robot_control.go_forward_distance(1) #1 meter distance offset, change based on how sub does 
                 break
             else:
-                self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
+                self.robot_control.movement(yaw = yaw, forward = forward, lateral = lateral)
                 print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
 
         # first_time = time.time()
