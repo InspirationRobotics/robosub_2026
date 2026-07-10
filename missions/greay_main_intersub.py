@@ -5,7 +5,7 @@ To create a sequential order of missions for Graey to follow.
 import rospy
 import time
 from auv.utils import deviceHelper
-from auv.mission import poles_mission, poles_mission_preset, gate_intersub_mission, intersub_com_mission_short_logfile_v3
+from auv.mission import poles_mission, poles_mission_preset, gate_intersub_mission, communication_helper
 from auv.motion import robot_control
 from auv.utils import arm, disarm, deviceHelper
 

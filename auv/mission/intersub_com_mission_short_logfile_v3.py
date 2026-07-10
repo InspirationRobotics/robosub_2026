@@ -57,11 +57,11 @@ class intersubComMission:
 
                 self.log_event("Graey yaw done, repeatedly telling Onyx to YAW")
 
-                for i in range(10):
+                for i in range(3):
                     if self.end:
                         break
 
-                    self.log_event(f"Graey sending YAW response {i + 1}/10 to Onyx")
+                    self.log_event(f"Graey sending YAW response {i + 1}/3 to Onyx")
                     self.send_modem_message(dest_addr="020", move="YAW")
 
                 self.log_event(
@@ -98,7 +98,7 @@ class intersubComMission:
         current_sub = self.sub
         self.log_event(f"Starting intersub communication mission as: {current_sub}")
 
-        #self.rc.set_control_mode("depth_hold")
+        self.rc.set_control_mode("depth_hold")
         self.rc.activate_heading_control(True)
         time.sleep(1)
 
@@ -107,7 +107,7 @@ class intersubComMission:
 
             time_counter = 0
             while not self.end:
-                if time_counter >= 20:
+                if time_counter >= 60:
                     self.log_event("Graey timed out waiting for Onyx completion", level="warn")
                     self.end = True
                     break
@@ -120,18 +120,18 @@ class intersubComMission:
 
             self.log_event("Onyx sending YAW messages to Graey")
 
-            for i in range(10):
+            for i in range(3): #
                 if self.end:
                     break
 
-                self.log_event(f"Onyx sending YAW message {i + 1}/10 to Graey")
+                self.log_event(f"Onyx sending YAW message {i + 1}/3 to Graey")
                 self.send_modem_message(dest_addr=destination_addr, move="YAW")
 
             self.log_event("Onyx switching to receiving mode, waiting for Graey to signal YAW")
 
             time_counter = 0
             while not self.end:
-                if time_counter >= 20:
+                if time_counter >= 20: #change this to 20
                     self.log_event(
                         "Timeout, Onyx did not receive message. Ending mission.",
                         level="warn"
@@ -149,13 +149,12 @@ if __name__ == "__main__":
     rospy.loginfo("Starting modem test script...")
 
     rc = RobotControl()
-    #rc.set_control_mode("depth_hold")
-    #rc.go_to_depth(0.5)
+    rc.set_control_mode("depth_hold")
+    rc.go_to_depth(0.5)
 
-    #time.sleep(20)
+    time.sleep(20)
 
     mission = intersubComMission(robotControl=rc)
     mission.run()
 
     rc.exit()
-
