@@ -24,6 +24,7 @@ class PoleSlalomMission:
       self.data = {}
       self.next_data = {}
       self.received = False
+      self.start_time = time.time()
 
       self.rc = rc
       self.cv_handler = cv_handler.CVHandler(**self.config)
@@ -61,8 +62,7 @@ class PoleSlalomMission:
         self.cv_handler.start_cv(file_name, self.callback)
 
       self.cv_handler.set_target("poles_cv_right", self.target)
-      time.sleep(6)
-    
+
       self.row_anchor = (self.rc.position['x'], self.rc.position['y'])  # anchor for row 1
 
       while not rospy.is_shutdown():
@@ -84,7 +84,6 @@ class PoleSlalomMission:
 
           cv_data = self.data.get("poles_cv_right", {})
           lateral = cv_data.get("lateral", 0)
-          forward = cv_data.get("forward", 0)
           state = cv_data.get("state", "searching")
           end = cv_data.get("end", False)
 
@@ -99,12 +98,8 @@ class PoleSlalomMission:
                   # Stop current CV, do the inter-row move, restart CV fresh
                   self.cv_handler.stop_cv("poles_cv_right")
 
-                  self.rc.movement(lateral=2)
-                  time.sleep(5)
-                  self.rc.movement()
-                
-                  #self.rc.go_lateral_distance(0.5) # strafe right for 0.75m to go between white and red pole
-                  self.rc.go_forward_distance(1.75) # move forward for 1.75m to get next to the next row of poles
+                  self.rc.go_lateral_distance(0.75) # strafe right for 0.75m to go between white and red pole
+                  self.rc.go_forward_distance(1.5) # move forward for 1.25m to get next to the next row of poles
 
                   # Increase row count by one
                   self.row_count += 1
@@ -137,10 +132,22 @@ class PoleSlalomMission:
 
                     if self.returning_to_anchor:
                         lateral = 1.0   # opposite sign of the CV's search-lateral (-1)
-                    
+
+                    if self.row_count == 0 and time.time() < 4:
+                        print("First row search")
+                        elapsed_time = time.time() - self.start_time
+                        lateral = -1 if elapsed_time < 2 else 1
+
               self.rc.movement(lateral=lateral)
-              
-      # End of while loop
+
+  def cleanup(self):
+      """
+      Clean up after the mission.
+      """
+      for file_name in self.cv_files:
+          self.cv_handler.stop_cv(file_name)
+
+      self.rc.movement(lateral=0, forward=0, yaw=0)
       print("[INFO] Pole Slalom mission terminated")
 
 if __name__ == "__main__":
@@ -154,4 +161,5 @@ if __name__ == "__main__":
 
   mission = PoleSlalomMission(rc = rc, **config)
   mission.run()
+  mission.cleanup()
   disarm.disarm()
