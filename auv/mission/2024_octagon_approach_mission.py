@@ -120,8 +120,8 @@ class OctagonApproachMission:
                 pass
         '''
         print("[INFO] Octagon approach mission terminated")
-        print('10 sec sleep')
-        time.sleep(10)
+        print('3 sec sleep')
+        time.sleep(3)
     def cleanup(self):
         """
         Here should be all the code required after the run function.
