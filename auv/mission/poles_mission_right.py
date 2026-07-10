@@ -24,7 +24,7 @@ class PoleSlalomMission:
       self.data = {}
       self.next_data = {}
       self.received = False
-      self.start_time = time.time()
+      self.start_time = None
 
       self.rc = rc
       self.cv_handler = cv_handler.CVHandler(**self.config)
@@ -121,6 +121,8 @@ class PoleSlalomMission:
 
           else: # still running cv script, take in the movement commands
               if state == "searching":
+                    if start_time == None:
+                        self.start_time = time.time()
                     displacement = get_distance(
                         (self.rc.position['x'], self.rc.position['y']),
                         self.row_anchor)
@@ -132,10 +134,11 @@ class PoleSlalomMission:
 
                     if self.returning_to_anchor:
                         lateral = 1.0   # opposite sign of the CV's search-lateral (-1)
-
-                    if self.row_count == 0 and time.time() < 4:
+                      
+                    elapsed_time = time.time() - self.start_time
+                
+                    if self.row_count == 0 and elapsed_time < 4:
                         print("First row search")
-                        elapsed_time = time.time() - self.start_time
                         lateral = -1 if elapsed_time < 2 else 1
 
               self.rc.movement(lateral=lateral)
