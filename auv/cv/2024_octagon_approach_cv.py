@@ -49,11 +49,11 @@ class CV:
         # Yaw cannot go below 0.5
         if detection_x < self.x_midpoint - self.tolerance: #yaw right
             print('yaw right')
-            yaw = -0.75 #dec from .75 due try preventing constant yawing
+            yaw = +0.55 #dec from .75 due try preventing constant yawing
             #self.search_direction = 1 #check this and line 55 after unit test
         elif detection_x > self.x_midpoint + self.tolerance: #yaw left
             print('yaw left')
-            yaw = 0.75
+            yaw = -0.55
             #self.search_direction = -1
         else:
             yaw = 0
