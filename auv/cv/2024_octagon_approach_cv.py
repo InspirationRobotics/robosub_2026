@@ -38,7 +38,7 @@ class CV:
 
         self.start_time = None
         self.last_yaw = 0
-        self.yaw_time_search = 7
+        self.yaw_time_search = 14
         self.end = False
         self.prev_time = time.time()
         
@@ -93,7 +93,7 @@ class CV:
             self.state = "search"
         
         if len(detections) == 0 and self.prev_detected == True:
-            if time.time() - self.prev_time < 7:
+            if time.time() - self.prev_time < self.yaw_time_search:
                 print('Search Time: ', time.time() - self.prev_time)
                 self.state = "search"
                 forward = 0
