@@ -38,7 +38,7 @@ class CV:
 
         self.start_time = None
         self.last_yaw = 0
-        self.yaw_time_search = 2
+        self.yaw_time_search = 7
         self.end = False
         self.prev_time = time.time()
         
