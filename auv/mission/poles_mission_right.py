@@ -121,7 +121,7 @@ class PoleSlalomMission:
 
           else: # still running cv script, take in the movement commands
               if state == "searching":
-                    if start_time == None:
+                    if self.start_time == None:
                         self.start_time = time.time()
                     displacement = get_distance(
                         (self.rc.position['x'], self.rc.position['y']),
