@@ -101,7 +101,7 @@ class OctagonApproachMission:
         # first_time = time.time()
         # while time.time() - first_time < 2:
         #     self.robot_control.movement(forward=2)
-
+        '''
         # Surfacing and resubmerging
         for i in range(2):
             if i == False:
@@ -111,10 +111,10 @@ class OctagonApproachMission:
             start_time = time.time()
             while time.time() - start_time < 7:
                 pass
+        '''
+        print("[INFO] Octagon approach mission terminated")
         print('10 sec sleep')
         time.sleep(10)
-        print("[INFO] Octagon approach mission terminated")
-
     def cleanup(self):
         """
         Here should be all the code required after the run function.
