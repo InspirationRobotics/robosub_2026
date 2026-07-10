@@ -90,15 +90,19 @@ class OctagonApproachMission:
             if end:
                 print("[INFO] Ending Octagon Approach CV")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
+                self.robot_control.set_flight_mode("STABILIZE")
                 #self.robot_control.go_forward_distance(1) #1 meter distance offset, change based on how sub does 
                 print('surfacing now!')
                 break
             else:
                 if forward > abs(yaw):
+                    self.robot_control.set_flight_mode('depth_hold')
                     self.robot_control.go_forward_distance(0.3)
+                    print('WE IS GOING FORWARDDDDDDDDDDDDDDD')
                 else:
+                    self.robot_control.set_flight_mode("STABILIZE")
                     self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
-                print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
+                print('YAW: ', yaw)
 
         # first_time = time.time()
         # while time.time() - first_time < 2:
