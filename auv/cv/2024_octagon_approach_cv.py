@@ -101,7 +101,7 @@ class CV:
         if len(detections) >= 1:
             if len(detections) == 1:
                 for detection in detections:
-                    print(f"[DEBUG] Detection confidence: {detection.confidence}")
+                    #print(f"[DEBUG] Detection confidence: {detection.confidence}")
                     if detection.confidence > 0.65:
                         target_x = (detection.xmin + detection.xmax) / 2
                         target_y = (detection.ymin + detection.ymax) / 2
@@ -133,8 +133,8 @@ class CV:
             yaw = -1
 
         if self.state == "approach":
-            print("[DEBUG] Approaching now!")
-            print(target_x)
+            #print("[DEBUG] Approaching now!")
+           
             forward, yaw = self.smart_approach(target_x)
             self.prev_time = time.time()
             
