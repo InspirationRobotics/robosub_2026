@@ -94,8 +94,10 @@ class OctagonApproachMission:
                 print('surfacing now!')
                 break
             else:
-                #lateral = 0; yaw = 0; forward = 1
-                self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
+                if forward > yaw:
+                    self.robot_control.go_forward_distance(0.3)
+                else:
+                    self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
                 print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
 
         # first_time = time.time()
