@@ -9,7 +9,7 @@ rc = robot_control.RobotControl()
 
 arm.arm()
 
-rc.set_depth(0.8)
+rc.go_to_depth(0.8)
 print("[INFO] Setting depth to 0.4 meters")
 
 time.sleep(20.0)
