@@ -32,9 +32,8 @@ class OctagonApproachMission:
 
         self.robot_control = robot_control.RobotControl()
         self.cv_handler = cv_handler.CVHandler(**self.config)
-
+        self.robot_control.set_flight_mode("STABILIZE")
         self.robot_control.go_to_depth(0.4)
-
         time.sleep(5)
         
         # Initialize the CV handlers; dummys are used to input a video file instead of the camera stream as data for the CV script to run on
@@ -92,6 +91,7 @@ class OctagonApproachMission:
                 print("[INFO] Ending Octagon Approach CV")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
                 #self.robot_control.go_forward_distance(1) #1 meter distance offset, change based on how sub does 
+                print('surfacing now!')
                 break
             else:
                 #lateral = 0; yaw = 0; forward = 1
@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
     # Create a mission object with arguments
     mission = OctagonApproachMission(**config)
-
+    print('Constructor done!')
     # Run the mission
 
     arm.arm()
