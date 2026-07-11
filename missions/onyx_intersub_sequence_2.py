@@ -35,21 +35,9 @@ GRAEY_ADDR = "010"
 operating_depth = 0.45
 
 
-def require_receive_and_reply(
-    expected_msg,
-    reply_msg,
-    wait_timeout,
-    ack_count=3,
-):
+def require_receive_and_reply(expected_msg, reply_msg, wait_timeout, ack_count=3):
     """Wait for one Graey state and stop the mission if it cannot be confirmed."""
-    completed = comms.receive_and_ack(
-        expected_msg=expected_msg,
-        reply_addr=GRAEY_ADDR,
-        reply_msg=reply_msg,
-        wait_timeout=wait_timeout,
-        ack_count=ack_count,
-        ack_delay=0.5,
-    )
+    completed = comms.receive_and_ack(expected_msg=expected_msg,reply_addr=GRAEY_ADDR, reply_msg=reply_msg,wait_timeout=wait_timeout,ack_count=ack_count, ack_delay=0.5)
 
     if not completed:
         raise RuntimeError(
@@ -70,56 +58,30 @@ try:
     comms.log_event(f"Onyx reached depth {operating_depth} m and is listening")
 
     """MISSION_START HANDSHAKE"""
-    require_receive_and_reply(
-        expected_msg="MISSION_START",
-        reply_msg="ACK_MISSION_START",
-        wait_timeout=120,
-    )
+    require_receive_and_reply(expected_msg="MISSION_START",reply_msg="ACK_MISSION_START",wait_timeout=120,ack_count=3)
     eventflags[1] = True
     comms.log_event("Confirmed MISSION_START to Graey")
 
     """GATE_START HANDSHAKE"""
-    require_receive_and_reply(
-        expected_msg="GATE_START",
-        reply_msg="ACK_GATE_START",
-        wait_timeout=120,
-    )
+    require_receive_and_reply(expected_msg="GATE_START",reply_msg="ACK_GATE_START",wait_timeout=120,ack_count=3)
     comms.log_event("Confirmed GATE_START to Graey")
 
     """GATE_FINISH / GO_HOME HANDSHAKE"""
-    require_receive_and_reply(
-        expected_msg="GATE_FINISH",
-        reply_msg="GO_HOME",
-        wait_timeout=180,
-        ack_count=5,
-    )
+    require_receive_and_reply(expected_msg="GATE_FINISH",reply_msg="GO_HOME",wait_timeout=180, ack_count=5)
     eventflags[2] = True
     comms.log_event("Received GATE_FINISH and sent GO_HOME")
 
     """GOING_HOME HANDSHAKE"""
-    require_receive_and_reply(
-        expected_msg="GOING_HOME",
-        reply_msg="ACK_GOING_HOME",
-        wait_timeout=120,
-    )
+    require_receive_and_reply(expected_msg="GOING_HOME",reply_msg="ACK_GOING_HOME",wait_timeout=120,ack_count=3)
     eventflags[3] = True
     comms.log_event("Confirmed GOING_HOME to Graey")
 
     """STARTING_STYLE_POINTS HANDSHAKE"""
-    require_receive_and_reply(
-        expected_msg="STARTING_STYLE_POINTS",
-        reply_msg="ACK_STARTING_STYLE_POINTS",
-        wait_timeout=120,
-    )
+    require_receive_and_reply( expected_msg="STARTING_STYLE_POINTS", reply_msg="ACK_STARTING_STYLE_POINTS",wait_timeout=120, ack_count=3 )
     comms.log_event("Confirmed STARTING_STYLE_POINTS to Graey")
 
     """ROLL_DONE HANDSHAKE"""
-    require_receive_and_reply(
-        expected_msg="ROLL_DONE",
-        reply_msg="ACK_ROLL_DONE",
-        wait_timeout=180,
-        ack_count=5,
-    )
+    require_receive_and_reply(expected_msg="ROLL_DONE", reply_msg="ACK_ROLL_DONE",wait_timeout=180, ack_count=5,)
 
     eventflags[4] = True
     comms.log_event("Confirmed ROLL_DONE to Graey")

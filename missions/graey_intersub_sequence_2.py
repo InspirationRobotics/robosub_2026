@@ -45,20 +45,10 @@ return_distance = 0.5
 
 def require_ack(message, expected_ack, count=20, final_timeout=40):
     """Send one mission-state command and stop the mission if Onyx never confirms it."""
-    confirmed = comms.send_and_wait_for_ack(
-        dest_addr=ONYX_ADDR,
-        message=message,
-        expected_ack=expected_ack,
-        count=count,
-        delay=1,
-        final_timeout=final_timeout,
-        settle_delay=2.0,
-    )
+    confirmed = comms.send_and_wait_for_ack(dest_addr=ONYX_ADDR,message=message,expected_ack=expected_ack,count=count,delay=1,final_timeout=final_timeout, settle_delay=2.0)
 
     if not confirmed:
-        raise RuntimeError(
-            f"Onyx did not confirm '{message}' with '{expected_ack}'"
-        )
+        raise RuntimeError(f"Onyx did not confirm '{message}' with '{expected_ack}'")
 
 
 try:
@@ -114,12 +104,7 @@ try:
         raise
 
     """GATE_FINISH / GO_HOME HANDSHAKE"""
-    require_ack(
-        message="GATE_FINISH",
-        expected_ack="GO_HOME",
-        count=20,
-        final_timeout=120,
-    )
+    require_ack(message="GATE_FINISH", expected_ack="GO_HOME", count=20,final_timeout=120,)
     comms.log_event("Received GO_HOME from Onyx")
 
     """GOING_HOME HANDSHAKE"""
