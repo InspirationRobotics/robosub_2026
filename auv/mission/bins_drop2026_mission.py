@@ -36,7 +36,7 @@ class BinsDropMission:
         self.robot_control.go_to_depth(0.2) #change later for comp (0.2 is for house pool)
         time.sleep(0.1)
         
-        self.robot_control.go_to_heading(self.heading)
+        #self.robot_control.go_to_heading(self.heading)
         self.robot_control.activate_heading_control(True)
 
         self.cv_handler = cv_handler.CVHandler(**self.config)
