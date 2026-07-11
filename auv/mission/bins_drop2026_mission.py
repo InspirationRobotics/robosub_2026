@@ -88,9 +88,9 @@ class BinsDropMission:
                 break
             elif drop:
                 try:
-                    self.rc.move_servo("/auv/device/dropper")
+                    self.robot_control.move_servo("/auv/device/dropper")
                     time.sleep(0.5)
-                    self.rc.move_servo("/auv/device/dropper")
+                    self.robot_control.move_servo("/auv/device/dropper")
                 except:
                     print('no servo detected')
                 break
@@ -102,7 +102,13 @@ class BinsDropMission:
                 self.robot_control.go_lateral_distance(lateral)
                 self.robot_control.set_flight_mode("STABLIZE")
                 print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
-
+    def servo_test(self):
+        try:
+            self.robot_control.move_servo("/auv/device/dropper")
+            time.sleep(0.5)
+            self.robot_control.move_servo("/auv/device/dropper")
+        except:
+            print('no servo detected')
 
         
 
@@ -145,8 +151,8 @@ if __name__ == "__main__":
     # Run the mission
 
     arm.arm()
+    mission.servo_test()
+    #mission.run() uncomment to do mission fr, just commented for servo test
+    #mission.cleanup()
 
-    mission.run()
-    mission.cleanup()
-
-    disarm.disarm()
+    #disarm.disarm()
