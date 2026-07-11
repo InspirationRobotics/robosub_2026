@@ -40,7 +40,7 @@ eventflags = [False, False, False, False, False]
 
 GRAEY_ADDR = "010"
 
-operating_depth = 0.6  # Change to 0.45 if that is your final comp depth
+operating_depth = 0.45  # Change to 0.45 if that is your final comp depth
 
 
 try:
@@ -108,14 +108,7 @@ try:
     try:
         # This is better than send_repeated + wait_for_expected_message
         # because Graey may reply while Onyx is still sending GO_HOME.
-        got_reply = comms.send_until_reply(
-            dest_addr=GRAEY_ADDR,
-            message="GO_HOME",
-            expected_reply="GOING_HOME",
-            count=20,
-            delay=1,
-            final_timeout=40
-        )
+        got_reply = comms.send_until_reply(dest_addr=GRAEY_ADDR,message="GO_HOME", expected_reply="GOING_HOME", count=20, delay=1, final_timeout=40)
 
         if not got_reply:
             comms.log_event("Did not receive GOING_HOME from Graey. Ending Onyx mission.", level="warn")

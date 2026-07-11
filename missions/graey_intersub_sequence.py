@@ -48,8 +48,8 @@ ONYX_ADDR = "020"
 operating_depth = 0.6      # Change to 0.45 if that is your final comp depth
 gate_heading = 0           # Calibrate each time
 return_heading = 180
-gate_forward_distance = 3  # meters
-return_distance = 2        # meters
+gate_forward_distance = 2  # meters
+return_distance = 0.5        # meters
 
 
 try:
@@ -89,12 +89,7 @@ try:
 
     """SEND MISSION_START"""
     try:
-        comms.send_repeated(
-            dest_addr=ONYX_ADDR,
-            message="MISSION_START",
-            count=3,
-            delay=1
-        )
+        comms.send_repeated(dest_addr=ONYX_ADDR,message="MISSION_START", count=3,delay=1)
 
     except Exception as e:
         comms.log_event(f"ERROR sending MISSION_START: {e}", level="error")
@@ -102,12 +97,7 @@ try:
 
     """SEND GATE_START"""
     try:
-        comms.send_repeated(
-            dest_addr=ONYX_ADDR,
-            message="GATE_START",
-            count=3,
-            delay=1
-        )
+        comms.send_repeated(dest_addr=ONYX_ADDR,message="GATE_START", count=3,delay=1)
 
     except Exception as e:
         comms.log_event(f"ERROR sending GATE_START: {e}", level="error")
@@ -133,12 +123,7 @@ try:
 
     """SEND GATE_FINISH"""
     try:
-        comms.send_repeated(
-            dest_addr=ONYX_ADDR,
-            message="GATE_FINISH",
-            count=5,
-            delay=1
-        )
+        comms.send_repeated(dest_addr=ONYX_ADDR,message="GATE_FINISH", count=5,delay=1)
 
     except Exception as e:
         comms.log_event(f"ERROR sending GATE_FINISH: {e}", level="error")
@@ -146,10 +131,7 @@ try:
 
     """WAIT FOR GO_HOME"""
     try:
-        got_go_home = comms.wait_for_expected_message(
-            expected_msg="GO_HOME",
-            timeout=120
-        )
+        got_go_home = comms.wait_for_expected_message(expected_msg="GO_HOME", timeout=120)
 
         if not got_go_home:
             comms.log_event("Did not receive GO_HOME. Ending Graey mission safely.", level="warn")
@@ -164,12 +146,7 @@ try:
 
     """SEND GOING_HOME"""
     try:
-        comms.send_repeated(
-            dest_addr=ONYX_ADDR,
-            message="GOING_HOME",
-            count=5,
-            delay=1
-        )
+        comms.send_repeated(dest_addr=ONYX_ADDR,message="GOING_HOME",count=5,delay=1)
 
     except Exception as e:
         comms.log_event(f"ERROR sending GOING_HOME: {e}", level="error")
@@ -190,12 +167,7 @@ try:
 
     """SEND STARTING_STYLE_POINTS"""
     try:
-        comms.send_repeated(
-            dest_addr=ONYX_ADDR,
-            message="STARTING_STYLE_POINTS",
-            count=3,
-            delay=1
-        )
+        comms.send_repeated(dest_addr=ONYX_ADDR,message="STARTING_STYLE_POINTS",count=3,delay=1)
 
     except Exception as e:
         comms.log_event(f"ERROR sending STARTING_STYLE_POINTS: {e}", level="error")
@@ -227,12 +199,7 @@ try:
 
     """SEND ROLL_DONE"""
     try:
-        comms.send_repeated(
-            dest_addr=ONYX_ADDR,
-            message="ROLL_DONE",
-            count=5,
-            delay=1
-        )
+        comms.send_repeated( dest_addr=ONYX_ADDR,message="ROLL_DONE",count=5,delay=1)
 
         eventflags[4] = True
         comms.log_event("Graey intersub sequence complete")
