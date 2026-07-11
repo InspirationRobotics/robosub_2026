@@ -29,15 +29,16 @@ class BinsDropMission:
         self.received = False
 
         self.robot_control = robot_control.RobotControl()
+        self.robot_control.set_flight_mode("STABLIZE")
+        self.robot_control.go_to_depth(0.2) #probably redundant since bin approach does this for us :) 
         self.cv_handler = cv_handler.CVHandler(**self.config)
-
         # Initialize the CV handlers; dummys are used to input a video file instead of the camera stream as data for the CV script to run on
         for file_name in self.cv_files:
             self.cv_handler.start_cv(file_name, self.callback)
 
         self.cv_handler.set_target("bins_drop2026_cv", target)
 
-        #self.robot_control.go_to_depth(0.4)
+        
 
     def callback(self, msg):
         """
@@ -82,7 +83,7 @@ class BinsDropMission:
             end = self.data["bins_drop2026_cv"].get("end", None)
 
             if end:
-                print("Bins is OVER")
+                print("Bins is OVER AND FAILED")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
                 break
             elif drop:
@@ -91,10 +92,15 @@ class BinsDropMission:
                     time.sleep(0.5)
                     self.rc.move_servo("/auv/device/dropper")
                 except:
-                    print('no servo')
+                    print('no servo detected')
                 break
             else:
-                self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
+                #if heading is fixed change this to robot_control.movement() with inputs of yaw lateral and forward
+                self.robot_control.set_flight_mode("depth_hold")
+                time.sleep(0.1)
+                self.robot_control.go_forward_distance(forward)
+                self.robot_control.go_lateral_distance(lateral)
+                self.robot_control.set_flight_mode("STABLIZE")
                 print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
 
 
@@ -108,8 +114,10 @@ class BinsDropMission:
         for file_name in self.cv_files:
             self.cv_handler.stop_cv(file_name)
 
-        # Idle the robot
+        # Idle the robot and decrease depth for safetey
         self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
+        self.robot_control.set_flight_mode("STABLIZE")
+        self.robot_control.go_to_depth(0.4)
         print("[INFO] Bins drop mission terminate")
 
 

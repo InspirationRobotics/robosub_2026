@@ -6,7 +6,7 @@ import time
 import cv2 
 import numpy as np
 import time
-
+import math
 class CV:
     """
     Bins CV class. DO NOT change the name of the class, as this will mess up all of the backend files to run the CV scripts.
@@ -45,25 +45,11 @@ class CV:
         print("[INFO] Bins Drop CV Initialization")
     def center_to(self, target_x, target_y):
         #takes the detected center of the bin and returns the forward and lateral value to move the sub towards it
-        max_speed = 0.5
-        forward = (target_x - self.x_midpoint) / self.shape[0] * max_speed 
-        lateral = (target_y - self.y_midpoint) / self.shape[1] * max_speed
-        return forward, lateral
-        '''
-    def smart_approach(self, detection_x):
-        """Function to properly yaw and move forward"""
-        forward = 0
-        # Yaw cannot go below 0.5
-        if detection_x < self.x_midpoint - self.tolerance:
-            yaw = -0.55 #dec from .75 due try preventing constant yawing
-        elif detection_x > self.x_midpoint + self.tolerance:
-            yaw = 0.55
-        else:
-            yaw = 0
-            forward = 2.0
+        max_speed = 0.4 #basically a max distance now lol
+        lateral = (target_x - self.x_midpoint) / self.shape[0] * max_speed 
+        forward = (target_y - self.y_midpoint) / self.shape[1] * max_speed
+        return lateral, forward
 
-        return forward, yaw
-        '''
     def run(self, frame, target, detections):
         """
         Run the CV script.
@@ -107,10 +93,10 @@ class CV:
 
         if len(detections) == 0 and self.prev_detected == True:
             self.search_time = time.time() - self.prev_time
-            if self.search_time < 2:
+            if self.search_time < 10:
                 self.state = 'search'
-            else: #we could not find it after extra searching after lost
-                 self.end = True
+            else: #we could not find it after extra searching after lost, let's just drop it
+                 self.drop = True
 
         if len(detections) >= 1:
             if len(detections) == 1:
@@ -153,14 +139,19 @@ class CV:
             self.state = "centering"
 
 
-        if self.state == "search":
-            #improve later
-            forward = 0.2
+        if self.state == "search": 
+            search_ciel = math.ceil(self.search_time) #search_cieling
+            if search_ciel % 2 == 1:
+                forward = 0.25
+                lateral = 0.25
+            elif search_ciel % 2 == 0:
+                forward = 0
+                lateral = -0.25
 
         if self.state == "centering":
             print("[DEBUG] centering now!")
             print('target_x and target_y are: ', target_x, target_y)
-            forward, lateral = self.center_to(target_x, target_y)
+            lateral, forward = self.center_to(target_x, target_y)
             self.prev_time = time.time()
             
 
