@@ -30,15 +30,16 @@ class BinsApproachMission:
         self.received = False
 
         self.robot_control = robot_control.RobotControl()
-        self.robot_control.go_to_depth(0.2)
+        self.robot_control.set_flight_mode("STABILIZE") #reduces yaw when desending somehow
+        self.robot_control.go_to_depth(0.45)
         self.cv_handler = cv_handler.CVHandler(**self.config)
         self.end_heading = self.robot_control.get_heading()
         # Initialize the CV handlers; dummys are used to input a video file instead of the camera stream as data for the CV script to run on
         for file_name in self.cv_files:
             self.cv_handler.start_cv(file_name, self.callback)
 
-        self.cv_handler.set_target("octagon_approach_cv", target)
-        print("[INFO] octagon Approach Mission Init")
+        self.cv_handler.set_target("bins_approach2026_cv", target)
+        print("[INFO] BinsApproach Init")
     def callback(self, msg):
         """
         Calls back the cv_handler output -- you can have multiple callbacks for multiple CV handlers. Converts the output into JSON format.
@@ -58,9 +59,6 @@ class BinsApproachMission:
         Here should be all the code required to run the mission.
         This could be a loop, a finite state machine, etc.
         """
-        #self.robot_control.go_to_depth(0.5) <- this is done in __init__ line 42
-        #rc = robot_control.RobotControl()
-        #rc.rc.go_to_depth(1)
         while not rospy.is_shutdown():
             time.sleep(0.05)
             if not self.received:
@@ -82,29 +80,30 @@ class BinsApproachMission:
             yaw = self.data["bins_approach2026_cv"].get("yaw", None)
             vertical = self.data["bins_approach2026_cv"].get("vertical", None)
             end = self.data["bins_approach2026_cv"].get("end", None)
-            get_heading = self.data["bins_approach2026_cv"].get("get_heading", None)
 
-            if get_heading == True:
-                self.end_heading = self.robot_control.get_heading()
-                get_heading = False
             if end:
-                print("No More Bins Detected")
-                if self.end_heading != True:
-                    return
-                self.robot_control.movement(lateral = 0, forward = 0, yaw = 0 )
-                self.robot_control.go_to_heading(self.end_heading)
-                self.robot_control.go_forward_distance(1) #edit distance based on how mission runs (input in meters)
-                return
+                print("Ending Bins Approach")
+                self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
+                self.robot_control.set_flight_mode("STABILIZE")
+                #self.robot_control.go_forward_distance(1) #1 meter distance offset, change based on how sub does 
+                break
             else:
-                self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
-                print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
+                if forward > abs(yaw): #yes this line is dumb but yes it works bc yaw is always like 0 if forward is set
+                    self.robot_control.set_flight_mode('depth_hold')
+                    time.sleep(0.1)
+                    print('WE IS GOING FORWARDDDDDDDDDDDDDDDWE IS GOING FORWARDDDDDDDDDDDDDDDWE IS GOING FORWARDDDDDDDDDDDDDDD')
+                    self.robot_control.go_forward_distance(1)
+                else:
+                    self.robot_control.set_flight_mode("STABILIZE")
+                    self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
+                print('YAW: ', yaw)
 
-       
-
-        
-       
-
-        print("[INFO] Octagon approach mission terminated")
+        #going to 0.2 depth to prepare for bin dropping
+        print('going to 0.2 for bins drop')
+        self.robot_control.set_flight_mode("STABILIZE")
+        self.robot_control.go_to_depth(0.2)
+        time.sleep(3)
+        print("Bins Approach Complete")
 
     def cleanup(self):
         """
