@@ -27,10 +27,18 @@ class BinsDropMission:
         self.data = {}  # Dictionary to store the data from the CV handler
         self.next_data = {}  # Dictionary to store the newest data from the CV handler; this data will be merged with self.data.
         self.received = False
-
         self.robot_control = robot_control.RobotControl()
+        self.heading = self.robot_control.get_heading
+
         self.robot_control.set_flight_mode("STABLIZE")
-        self.robot_control.go_to_depth(0.2) #probably redundant since bin approach does this for us :) 
+        self.robot_control.set_control_mode('depth_hold')
+
+        self.robot_control.go_to_depth(0.2) #change later for comp (0.2 is for house pool)
+        time.sleep(0.1)
+        
+        self.robot_control.go_to_heading(self.heading)
+        self.robot_control.activate_heading_control(True)
+
         self.cv_handler = cv_handler.CVHandler(**self.config)
         # Initialize the CV handlers; dummys are used to input a video file instead of the camera stream as data for the CV script to run on
         for file_name in self.cv_files:
@@ -54,11 +62,25 @@ class BinsDropMission:
 
         # print(f"[DEBUG] Received data from {file_name}")
 
+
+    def move_servo(self):
+        try:
+            self.robot_control.move_servo("/auv/device/dropper")
+            time.sleep(0.5)
+            self.robot_control.move_servo("/auv/device/dropper")
+        except:
+            print('no servo detected')
+
+    def move_offset(self): #move the offset for marker dropper write once centering is good
+        pass
+
+
     def run(self):
         """
         Here should be all the code required to run the mission.
         This could be a loop, a finite state machine, etc.
         """
+
         while not rospy.is_shutdown():
             time.sleep(0.05)
             if not self.received:
@@ -80,37 +102,18 @@ class BinsDropMission:
             yaw = self.data["bins_drop2026_cv"].get("yaw", None)
             vertical = self.data["bins_drop2026_cv"].get("vertical", None)
             drop = self.data["bins_drop2026_cv"].get("drop", None)
-            end = self.data["bins_drop2026_cv"].get("end", None)
 
-            if end:
-                print("Bins is OVER AND FAILED")
-                self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
-                break
-            elif drop:
-                try:
-                    self.robot_control.move_servo("/auv/device/dropper")
-                    time.sleep(0.5)
-                    self.robot_control.move_servo("/auv/device/dropper")
-                except:
-                    print('no servo detected')
-                break
+            if drop == True:
+                print("aligning dropper")
+                self.move_offset()
+                print("Bins Over, Dropping Now!")
+                self.robot_control.movement()
+                self.move_servo()
             else:
                 #if heading is fixed change this to robot_control.movement() with inputs of yaw lateral and forward
-                self.robot_control.set_flight_mode("depth_hold")
-                time.sleep(0.1)
-                self.robot_control.go_forward_distance(forward)
-                self.robot_control.go_lateral_distance(lateral)
-                self.robot_control.set_flight_mode("STABLIZE")
-                print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
-    def servo_test(self):
-        try:
-            self.robot_control.move_servo("/auv/device/dropper")
-            time.sleep(0.5)
-            self.robot_control.move_servo("/auv/device/dropper")
-        except:
-            print('no servo detected')
+                self.robot_control.movement(yaw = yaw, forward = forward, lateral = lateral)
+                print('forward: ', forward, 'lateral: ', lateral)
 
-        
 
     def cleanup(self):
         """

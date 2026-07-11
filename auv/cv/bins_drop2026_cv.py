@@ -29,26 +29,32 @@ class CV:
         self.shape = (640, 480)
         self.x_midpoint = self.shape[0]/2
         self.y_midpoint = self.shape[1]/2
-
-        self.tolerance = 120
-
+        self.missed_frames = 0
+        self.tolerance = 50
         self.prev_detected = False
         self.state = None
-
         self.start_time = None
-        self.last_yaw = 0
-        self.yaw_time_search = 2
-        self.end = False #ends mission if the detection fails
+        self.stage = "lateral" #we center laterally first
         self.drop = False
         self.prev_time = time.time()
         self.search_time = 0
         print("[INFO] Bins Drop CV Initialization")
-    def center_to(self, target_x, target_y):
-        #takes the detected center of the bin and returns the forward and lateral value to move the sub towards it
-        max_speed = 0.4 #basically a max distance now lol
-        lateral = (target_x - self.x_midpoint) / self.shape[0] * max_speed 
-        forward = (target_y - self.y_midpoint) / self.shape[1] * max_speed
-        return lateral, forward
+
+    def center_x(self, target_x):
+        '''takes the detected center of the bin and returns the lateral value to move the sub towards it'''
+        offset = target_x - self.x_midpoint
+        proportion = 0.205 if offset > 0 else -0.205 # the distance decides thruster power
+        lateral = proportion * (abs(offset) ** 0.275) 
+        self.state = "centering x"
+        return lateral
+    
+    def center_y(self, target_y):
+        '''takes the detected center of the bin and returns the forward value to move the sub towards it'''
+        offset = target_y - self.x_midpoint
+        proportion = 0.168 if offset > 0 else -0.168 # the distance decides thruster power
+        forward = proportion * (abs(offset) ** 0.326) 
+        self.state = "centering x"
+        return forward
 
     def run(self, frame, target, detections):
         """
@@ -82,21 +88,11 @@ class CV:
         if detections is None:
             detections = []
         if len(detections) == 0 and self.prev_detected == False:
-            self.state = "search"
-
-        if len(detections) == 0 and self.prev_detected == False:
-            self.search_time = time.time() - self.prev_time
-            if self.search_time < 10:
-                self.state = 'search'
-            else: #we just cannot find the bin
-                 self.end = True
+            self.missed_frames += 1
+            self.state = "missed"
 
         if len(detections) == 0 and self.prev_detected == True:
-            self.search_time = time.time() - self.prev_time
-            if self.search_time < 10:
-                self.state = 'search'
-            else: #we could not find it after extra searching after lost, let's just drop it
-                 self.drop = True
+            self.state = 'missed'
 
         if len(detections) >= 1:
             if len(detections) == 1:
@@ -122,7 +118,7 @@ class CV:
                         target_y = (detection.ymin + detection.ymax) / 2
                         detection_confidence = detection.confidence
         #if the target_x and target_y are within 50 pixles of the midpoints we are then close to being centered and can drop
-        if abs(target_x - self.x_midpoint) < 50 and abs(target_y - self.y_midpoint) < 50: 
+        if abs(target_x - self.x_midpoint) <= self.tolerance and abs(target_y - self.y_midpoint) <= self.tolerance: 
             
             self.drop = True
             self.state = None
@@ -131,28 +127,32 @@ class CV:
             lateral = 0
             yaw = 0
             vertical = 0
-        #If no detection is made we enter search mode, if we have a detection then we enter centering mode
+
+        if abs(target_y - self.y_midpoint) > self.tolerance:
+            self.stage = 'lateral'
+        elif abs(target_x - self.x_midpoint) > self.tolerance:
+            self.stage = 'forward'
+        else:
+            self.stage = 'lateral'
+
+        #If no detection is made we enter missed mode, if we have a detection then we enter centering mode
         if target_x is None or target_y is None:
-            self.state = "search"
+            self.state = "missed"
         else:
             self.prev_detected = True
             self.state = "centering"
 
 
-        if self.state == "search": 
-            search_ciel = math.ceil(self.search_time) #search_cieling
-            if search_ciel % 2 == 1:
-                forward = 0.25
-                lateral = 0.25
-            elif search_ciel % 2 == 0:
-                forward = 0
-                lateral = -0.25
+        if self.state == "missed": 
+            self.missed_frames += 1
+            if self.missed_frames >= 100: #100 missed frames
+                self.drop = True
 
         if self.state == "centering":
-            print("[DEBUG] centering now!")
-            print('target_x and target_y are: ', target_x, target_y)
-            lateral, forward = self.center_to(target_x, target_y)
-            self.prev_time = time.time()
+            if self.stage == 'lateral':
+                lateral = self.center_x(target_x)
+            if self.stage == 'forward':
+                forward = self.center_y(target_y)
             
 
         # Continuously return motion commands, the state of the mission, and the visualized frame.
@@ -161,7 +161,6 @@ class CV:
             "forward": forward, 
             "yaw": yaw, 
             "vertical" : vertical, 
-            "end": self.end, 
             "drop": self.drop
             }
         return motion_commands_and_state, frame
