@@ -30,14 +30,9 @@ class CV:
         self.shape = (640, 480)
         self.x_midpoint = self.shape[0]/2
         self.y_midpoint = self.shape[1]/2
-
         self.tolerance = 150 # Pixels incrased from 120 to help with tolerance
-
         self.prev_detected = False
         self.state = None
-
-        self.start_time = None
-        self.last_yaw = 0
         self.yaw_time_search = 14
         self.end = False
         self.prev_time = time.time()
@@ -48,9 +43,9 @@ class CV:
         """Function to properly yaw and move forward"""
         forward = 0
         # Yaw cannot go below 0.5
-        if detection_x < self.x_midpoint - self.tolerance:
+        if detection_x < self.x_midpoint - self.tolerance: #yaw right
             yaw = 0.55 #dec from .75 due try preventing constant yawing
-        elif detection_x > self.x_midpoint + self.tolerance:
+        elif detection_x > self.x_midpoint + self.tolerance: #yaw left
             yaw = -0.55
         else:
             yaw = 0
