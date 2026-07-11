@@ -29,11 +29,11 @@ class OctagonApproachMission:
         self.data = {}  # Dictionary to store the data from the CV handler
         self.next_data = {}  # Dictionary to store the newest data from the CV handler; this data will be merged with self.data.
         self.received = False
-        self.end_heading = None
+
         self.robot_control = robot_control.RobotControl()
         self.cv_handler = cv_handler.CVHandler(**self.config)
-
-        self.robot_control.go_to_depth(0.4)
+        self.robot_control.set_flight_mode("STABILIZE")
+        self.robot_control.go_to_depth(0.45)
         time.sleep(5)
         
         # Initialize the CV handlers; dummys are used to input a video file instead of the camera stream as data for the CV script to run on
@@ -87,38 +87,39 @@ class OctagonApproachMission:
             vertical = self.data["2024_octagon_approach_cv"].get("vertical", None)
             end = self.data["2024_octagon_approach_cv"].get("end", None)
 
-            #later add code that using the stored heading to go forward a little bit
-
-            store_heading = self.data["2024_octagon_approach_cv"].get("store_heading", None)
-
-            if store_heading == True:
-                print('storing heading')
-                self.end_heading = robot_control.get_heading()
             if end:
                 print("[INFO] Ending Octagon Approach CV")
                 self.robot_control.movement(lateral = 0, forward = 0, yaw = 0)
+                self.robot_control.set_flight_mode("STABILIZE")
                 #self.robot_control.go_forward_distance(1) #1 meter distance offset, change based on how sub does 
+                print('surfacing now!')
                 break
             else:
-                self.robot_control.movement(yaw = yaw, forward = forward, lateral = lateral)
-                print('forward: ', forward, 'lateral: ', lateral, 'yaw: ', yaw)
+                if forward > abs(yaw):
+                    self.robot_control.set_flight_mode('depth_hold')
+                    time.sleep(0.1)
+                    print('WE IS GOING FORWARDDDDDDDDDDDDDDDWE IS GOING FORWARDDDDDDDDDDDDDDDWE IS GOING FORWARDDDDDDDDDDDDDDD')
+                    self.robot_control.go_forward_distance(1)
+                else:
+                    self.robot_control.set_flight_mode("STABILIZE")
+                    self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
+                print('YAW: ', yaw)
 
         # first_time = time.time()
         # while time.time() - first_time < 2:
         #     self.robot_control.movement(forward=2)
-
+        
         # Surfacing and resubmerging
         for i in range(2):
             if i == False:
                 self.robot_control.go_to_depth(0.0)
             elif i == True:
                 self.robot_control.go_to_depth(0.7)
-            start_time = time.time()
-            while time.time() - start_time < 7:
-                pass
-
+            time.sleep(7)
+        
         print("[INFO] Octagon approach mission terminated")
-
+        print('3 sec sleep')
+        time.sleep(3)
     def cleanup(self):
         """
         Here should be all the code required after the run function.
@@ -152,11 +153,10 @@ if __name__ == "__main__":
 
     # Create a mission object with arguments
     mission = OctagonApproachMission(**config)
-
+    print('Constructor done!')
     # Run the mission
 
     arm.arm()
-
     mission.run()
     mission.cleanup()
 

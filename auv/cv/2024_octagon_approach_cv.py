@@ -25,19 +25,19 @@ class CV:
         Args:
             config: Dictionary that contains the configuration of the devices on the sub.
         """
+
         self.config = config
         self.shape = (640, 480)
         self.x_midpoint = self.shape[0]/2
         self.y_midpoint = self.shape[1]/2
         self.tolerance = 150 # Pixels incrased from 120 to help with tolerance
         self.store_heading = False
-        self.ever_detected = False
         self.prev_detected = False
         self.state = None
-        self.search_direction = -1 # value is 1 or -1, 1 | 1 is search right -1 is left
+        self.searchdirection = -1 # value is 1 or -1, 1 | 1 is search right -1 is left
         self.start_time = None
         self.last_yaw = 0
-        self.yaw_time_search = 7 #seconds
+        self.yaw_time_search = 14
         self.end = False
         self.prev_time = time.time()
         
@@ -48,16 +48,14 @@ class CV:
         forward = 0
         # Yaw cannot go below 0.5
         if detection_x < self.x_midpoint - self.tolerance: #yaw right
-            print('yaw right')
-            yaw = +0.55 #dec from .75 due try preventing constant yawing
-            #self.search_direction = 1 #check this and line 55 after unit test
+            yaw = -0.75 #dec from .75 due try preventing constant yawing
+            #self.searchdirection = 1 #check this and line 55 after unit test
         elif detection_x > self.x_midpoint + self.tolerance: #yaw left
-            print('yaw left')
-            yaw = -0.55
-            #self.search_direction = -1
+            yaw = 0.75
+            #self.searchdirection = -1
         else:
             yaw = 0
-            forward = 1
+            forward = 1.5
 
         return forward, yaw
 
@@ -84,7 +82,7 @@ class CV:
 
         target_x = None
         target_y = None
-        self.store_heading = False
+
         # Find the bin if no detection is found
         # Align with the bin and move forward (through strafe should be fine)
         # If we have lost sight of the bin, then end
@@ -94,24 +92,19 @@ class CV:
             detections = []
         if len(detections) == 0 and self.ever_detected == False:
             self.state = "search"
-            if time.time() - self.prev_time < self.yaw_time_search * 2: #double the serach time if we have not seen anything yet
-                self.state = None
-                forward = 0
-            else:
-                self.end = True
         
-        if len(detections) == 0 and self.ever_detected == True:
+        if len(detections) == 0 and self.prev_detected == True:
             self.state = "search"
             if time.time() - self.prev_time < self.yaw_time_search:
-                self.state = None
+                print('Search Time: ', time.time() - self.prev_time)
+                self.state = "search"
                 forward = 0
             else:
                 self.end = True
-
         if len(detections) >= 1:
             if len(detections) == 1:
                 for detection in detections:
-                    print(f"[DEBUG] Detection confidence: {detection.confidence}")
+                    #print(f"[DEBUG] Detection confidence: {detection.confidence}")
                     if detection.confidence > 0.65:
                         target_x = (detection.xmin + detection.xmax) / 2
                         target_y = (detection.ymin + detection.ymax) / 2
@@ -140,23 +133,17 @@ class CV:
 
         if self.state == "search":
 
-            if self.prev_detected == True: #if we detected last frame then we store the heading for when the mission ends
-                self.store_heading = True
-            else:
-                self.store_heading = False
-            self.prev_detected = False
             #later add code that toggles a set heading if we lost detection earlier
             #Circular Search Favorered over grid
-            yaw = 1 * self.search_direction #by default search_direction is -1
+            yaw = 1 * searchdirection #by default searchdirection is -1
 
         if self.state == "approach":
             print("[DEBUG] Approaching now!")
             print(target_x)
-            self.prev_detected = True 
             forward, yaw = self.smart_approach(target_x)
             print('going forward ', forward)
             self.prev_time = time.time()
             
-        print(f"{self.state}")
+        #print(f"{self.state}")
         # Continuously return motion commands, the state of the mission, and the visualized frame.
-        return {"lateral": lateral, "forward": forward, "yaw": yaw, "vertical" : vertical, "end": self.end, 'store_heading': self.store_heading}, frame
+        return {"lateral": lateral, "forward": forward, "yaw": yaw, "vertical" : vertical, "end": self.end}, frame
