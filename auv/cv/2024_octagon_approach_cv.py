@@ -89,6 +89,7 @@ class CV:
         
         if len(detections) == 0 and self.prev_detected == True:
             if time.time() - self.prev_time < self.yaw_time_search:
+                rospy.loginfo('Search Time: ', time.time() - self.prev_time)
                 print('Search Time: ', time.time() - self.prev_time)
                 self.state = "search"
                 forward = 0
