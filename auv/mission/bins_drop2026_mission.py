@@ -155,4 +155,4 @@ if __name__ == "__main__":
     #mission.run() uncomment to do mission fr, just commented for servo test
     #mission.cleanup()
 
-    #disarm.disarm()
+    disarm.disarm()
