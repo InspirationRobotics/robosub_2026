@@ -46,7 +46,7 @@ rc.go_to_depth(0.6)
 try:
     #COIN FLIP
     rc.go_to_heading(0)
-    navigate_to("S1")
+    navigate_to("S2")
     rospy.loginfo("GATE MISSION FINISHED")
 except Exception as e:
     rospy.logerr("ERROR DOING GATE MISSION")
@@ -55,7 +55,10 @@ except Exception as e:
 """SLALOM MISSION"""
 
 try: 
-    navigate_to("S2")
+    navigate_to("S3")
+    navigate_to("S4")
+    navigate_to("S5")
+    navigate_to("S6")
     rospy.loginfo("Start of poles mission...")
     slalomMission = poles_mission_right.PoleSlalomMission(rc=rc)
     slalomMission.run()
