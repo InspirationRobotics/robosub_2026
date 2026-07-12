@@ -451,7 +451,7 @@ class RobotControl:
         while abs(target - self.position['z']) > 0.1:
             rospy.loginfo(f"Going to depth: {target} | current depth: {self.position['z']}")
             time.sleep(1/20) # 20hz
-  
+            
     def go_forward_distance(self, target: float):
         """
         Go forward by a certain distance based on DVL.
@@ -466,8 +466,22 @@ class RobotControl:
         # Smooth start parameters
         ramp_duration = 2.0   # seconds to reach full command
         ramp_start = time.time()
+        invalid_since = None
+        max_invalid_time = 1.0  # abort if DVL is untrustworthy this long
+        hard_timeout = 8.0       # was 30 - bound worst-case blind runtime
 
-        while (abs(target - self.dvl_sum) > 0.2) and (time.time() - start_time < 30):
+        while (abs(target - self.dvl_sum) > 0.2) and (time.time() - start_time < hard_timeout):
+            if not self.dvl_valid:
+                self.movement()  # zero thrust immediately, don't coast on stale command
+                if invalid_since is None:
+                    invalid_since = time.time()
+                elif time.time() - invalid_since > max_invalid_time:
+                    rospy.logerr("DVL invalid too long, aborting forward move")
+                    break
+                time.sleep(dt)
+                continue
+            invalid_since = None
+
             delta = target - self.dvl_sum
 
             # base forward command (before ramp)
@@ -531,8 +545,22 @@ class RobotControl:
         # Smooth start parameters
         ramp_duration = 2.0   # seconds to reach full command
         ramp_start = time.time()
+        invalid_since = None
+        max_invalid_time = 1.0  # abort if DVL is untrustworthy this long
+        hard_timeout = 8.0       # was 30 - bound worst-case blind runtime
 
-        while (abs(target - self.dvl_sum) > 0.3) and (time.time() - start_time < 30):
+        while (abs(target - self.dvl_sum) > 0.3) and (time.time() - start_time < hard_timeout):
+            if not self.dvl_valid:
+                self.movement()  # zero thrust immediately, don't coast on stale command
+                if invalid_since is None:
+                    invalid_since = time.time()
+                elif time.time() - invalid_since > max_invalid_time:
+                    rospy.logerr("DVL invalid too long, aborting lateral move")
+                    break
+                time.sleep(dt)
+                continue
+            invalid_since = None
+
             delta = target - self.dvl_sum
 
             # base lateral command (before ramp)
@@ -581,7 +609,7 @@ class RobotControl:
             time.sleep(0.4)
         self.movement()
 
-        
+  
     def go_by_time(self, f=None, l=None, t=0):
         """Args: f - forward l - lateral t - time to sleep"""
         self.movement(forward=f,lateral=l)
