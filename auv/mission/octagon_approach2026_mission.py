@@ -16,7 +16,7 @@ from auv.motion import robot_control # For running the motors on the sub
 from auv.utils import arm, disarm
 
 class OctagonApproachMission:
-    cv_files = ["2024_octagon_approach_cv"] # CV file to run
+    cv_files = ["octagon_approach2026_cv"] # CV file to run
 
     def __init__(self, target=None, **config):
         """
@@ -40,7 +40,7 @@ class OctagonApproachMission:
         for file_name in self.cv_files:
             self.cv_handler.start_cv(file_name, self.callback)
 
-        self.cv_handler.set_target("2024_octagon_approach_cv", target)
+        self.cv_handler.set_target("octagon_approach2026_cv", target)
         print("[INFO] octagon Approach Mission Init")
         
     def callback(self, msg):
@@ -81,11 +81,11 @@ class OctagonApproachMission:
             self.next_data = {}
 
             # Do something with the data.
-            lateral = self.data["2024_octagon_approach_cv"].get("lateral", None)
-            forward = self.data["2024_octagon_approach_cv"].get("forward", None)
-            yaw = self.data["2024_octagon_approach_cv"].get("yaw", None)
-            vertical = self.data["2024_octagon_approach_cv"].get("vertical", None)
-            end = self.data["2024_octagon_approach_cv"].get("end", None)
+            lateral = self.data["octagon_approach2026_cv"].get("lateral", None)
+            forward = self.data["octagon_approach2026_cv"].get("forward", None)
+            yaw = self.data["octagon_approach2026_cv"].get("yaw", None)
+            vertical = self.data["octagon_approach2026_cv"].get("vertical", None)
+            end = self.data["octagon_approach2026_cv"].get("end", None)
 
             if end:
                 print("[INFO] Ending Octagon Approach CV")
