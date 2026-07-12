@@ -472,7 +472,7 @@ class RobotControl:
         ramp_duration = 2.0   # seconds to reach full command
         ramp_start = time.time()
         invalid_since = None
-        max_invalid_time = 1.0  # abort if DVL is untrustworthy this long
+        max_invalid_time = 2.5  # abort if DVL is untrustworthy this long (loosened from 1.0 - tolerate brief flickers, e.g. multipath/prop wash)
         hard_timeout = 8.0       # was 30 - bound worst-case blind runtime
 
         while (abs(target - self.dvl_sum) > 0.2) and (time.time() - start_time < hard_timeout):
@@ -551,7 +551,7 @@ class RobotControl:
         ramp_duration = 2.0   # seconds to reach full command
         ramp_start = time.time()
         invalid_since = None
-        max_invalid_time = 1.0  # abort if DVL is untrustworthy this long
+        max_invalid_time = 2.5  # abort if DVL is untrustworthy this long (loosened from 1.0 - tolerate brief flickers, e.g. multipath/prop wash)
         hard_timeout = 8.0       # was 30 - bound worst-case blind runtime
 
         while (abs(target - self.dvl_sum) > 0.3) and (time.time() - start_time < hard_timeout):
