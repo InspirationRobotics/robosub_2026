@@ -57,8 +57,14 @@ class _CSVWriter:
 
 def _start_dvl_socket(dvl_ip):
     dvl_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    dvl_socket.settimeout(5)
     dvl_socket.connect((dvl_ip, 16171))
     return dvl_socket
+
+def open_stream(ip="192.168.2.10", message_type="velocity"):
+    """Open one persistent DVL connection; yields JSON lines until it dies."""
+    dvl_socket = _start_dvl_socket(ip)
+    return _process_messages(dvl_socket, _type(message_type), None)
 
 def _type(message_type):
     if message_type == "velocity":
@@ -114,7 +120,7 @@ def _process_messages(dvl_socket, message_type, time_format, csv_writer = None):
     while True:
         buffer = dvl_socket.recv(buffer_size).decode()
         if not buffer:
-            continue
+            raise ConnectionError("DVL TCP connection closed")
         message_parts = buffer.split("\r\n")
         if len(message_parts) == 1:
             message += message_parts[0]
