@@ -8,7 +8,7 @@ pixhawk flight controller and the software -- that is the job that pixstandalone
 # Import the MAVROS message types that are needed
 import rospy
 import std_msgs
-from std_msgs.msg import Float64, Float32MultiArray, String
+from std_msgs.msg import Float64, Float32MultiArray, String, Bool
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Vector3Stamped
@@ -78,7 +78,9 @@ class RobotControl:
         self.service        = None   # ros service name to move servos
         
         # Establish thruster and depth publishers
-        self.sub_pose       = rospy.Subscriber("/auv/state/pose", PoseStamped, self.pose_callback)  
+        self.sub_pose       = rospy.Subscriber("/auv/state/pose", PoseStamped, self.pose_callback)
+        self.dvl_valid      = False
+        self.sub_dvl_valid  = rospy.Subscriber("/auv/devices/dvl/valid", Bool, self.dvl_valid_callback)
         self.sub_dvl        = rospy.Subscriber("/auv/devices/dvl/velocity", TwistStamped, self.dvl_callback)
         self.sub_modem      = rospy.Subscriber("/auv/devices/modem/received", String, self.modem_callback)
         self.pub_thrusters  = rospy.Publisher("/mavros/rc/override", mavros_msgs.msg.OverrideRCIn, queue_size=10)
