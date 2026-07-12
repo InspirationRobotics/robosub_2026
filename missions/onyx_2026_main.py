@@ -10,7 +10,7 @@ from auv.mission import poles_mission_right
 from auv.motion import robot_control
 from auv.utils import arm, disarm, deviceHelper
 
-with open("./missions/A7-12.json", "r==") as file:
+with open("./missions/A7-12.json", "r") as file:
     data = json.load(file)
 
 # Build a dictionary where the keys are the labels (e.g., "G1", "S1")
@@ -55,7 +55,7 @@ except Exception as e:
 """SLALOM MISSION"""
 
 try: 
-    navigate_to("S1")
+    navigate_to("S2")
     rospy.loginfo("Start of poles mission...")
     slalomMission = poles_mission_right.PoleSlalomMission(rc=rc)
     slalomMission.run()
