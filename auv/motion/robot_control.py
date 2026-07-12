@@ -176,8 +176,11 @@ class RobotControl:
     def dvl_callback(self, msg):
         self.dvl_velocity['x'] = msg.twist.linear.x
         self.dvl_velocity['y'] = msg.twist.linear.y
-        self.dvl_velocity['z'] = msg.twist.linear.z   
-    
+        self.dvl_velocity['z'] = msg.twist.linear.z
+
+    def dvl_valid_callback(self, msg):
+        self.dvl_valid = msg.data
+
     def modem_callback(self, msg):
         if len(self.modem_queue) <=10:
             self.modem_queue.append(msg.data)
