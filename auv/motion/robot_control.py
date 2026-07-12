@@ -764,7 +764,6 @@ class RobotControl:
                 time.sleep(3)
                 rospy.loginfo(f"Heading reached, going forward {D} m")
                 self.go_forward_distance(D)
-                self.activate_heading_control(False)
                 rospy.loginfo(f"Reached {(x,y)}")
                 time.sleep(0.1)
             except Exception as e:
