@@ -1,10 +1,9 @@
---- /private/tmp/claude-502/-Users-750032930-Source-Code-robosub-2026-main/ec00b742-f137-48d9-aed2-40d5e26e2d8a/scratchpad/orig/robot_control.py	2026-07-12 14:45:54
+
 +++ auv/motion/robot_control.py	2026-07-12 14:31:17
 @@ -8,7 +8,7 @@
  # Import the MAVROS message types that are needed
  import rospy
  import std_msgs
--from std_msgs.msg import Float64, Float32MultiArray, String
 +from std_msgs.msg import Float64, Float32MultiArray, String, Bool
  from geometry_msgs.msg import Twist
  from geometry_msgs.msg import PoseStamped
@@ -22,7 +21,6 @@
      def dvl_callback(self, msg):
          self.dvl_velocity['x'] = msg.twist.linear.x
          self.dvl_velocity['y'] = msg.twist.linear.y
--        self.dvl_velocity['z'] = msg.twist.linear.z   
 +        self.dvl_velocity['z'] = msg.twist.linear.z
 +
 +    def dvl_valid_callback(self, msg):
