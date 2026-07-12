@@ -111,7 +111,9 @@ class BinsDropMission:
                 self.move_servo()
             else:
                 #if heading is fixed change this to robot_control.movement() with inputs of yaw lateral and forward
-                self.robot_control.movement(yaw = yaw, forward = forward, lateral = lateral)
+                #self.robot_control.movement(yaw = yaw, forward = forward, lateral = lateral) replaced for DVL movement due to heading issues
+                self.robot_control.go_lateral_distance(lateral * 0.25)
+                self.robot_control.go_forward_distance(forward * 0.25)
                 print('forward: ', forward, 'lateral: ', lateral)
 
 
