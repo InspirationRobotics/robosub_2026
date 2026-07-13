@@ -466,7 +466,7 @@ class RobotControl:
             rospy.loginfo(f"Going to depth: {target} | current depth: {self.position['z']}")
             time.sleep(1/20) # 20hz
             
-     def go_forward_distance(self, target: float):
+    def go_forward_distance(self, target: float):
         """
         Go forward by a certain distance based on DVL.
         Args:
