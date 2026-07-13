@@ -7,7 +7,7 @@ pixhawk flight controller and the software -- that is the job that pixstandalone
 
 # Import the MAVROS message types that are needed
 import rospy
-import std_msgs
+import std_msgpos
 from std_msgs.msg import Float64, Float32MultiArray, String, Bool
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PoseStamped
@@ -78,7 +78,8 @@ class RobotControl:
         self.service        = None   # ros service name to move servos
         
         # Establish thruster and depth publishers
-        self.sub_pose       = rospy.Subscriber("/auv/state/pose", PoseStamped, self.pose_callback)
+        #self.sub_pose       = rospy.Subscriber("/auv/state/pose", PoseStamped, self.pose_callback)
+        self.sub_pose       = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.pose_callback)
         self.dvl_valid      = False
         #self.sub_dvl_valid  = rospy.Subscriber("/auv/devices/dvl/valid", Bool, self.dvl_valid_callback)
         self.sub_dvl        = rospy.Subscriber("/auv/devices/dvl/velocity", TwistStamped, self.dvl_callback)
@@ -164,14 +165,19 @@ class RobotControl:
         self.thread.start()
 
     def pose_callback(self, msg):
-        """Callback function for ekf output"""
+        """Callback for Pixhawk EKF2 pose from /mavros/local_position/pose."""
         self.position['x'] = msg.pose.position.x
         self.position['y'] = msg.pose.position.y
-        self.position['z'] = msg.pose.position.z
+        self.position['z'] = -msg.pose.position.z
 
-        self.orientation['yaw']     = (msg.pose.orientation.z)
-        self.orientation['pitch']   = (msg.pose.orientation.y)
-        self.orientation['roll']    = (msg.pose.orientation.x)
+        q = msg.pose.orientation
+        # transforms3d expects (w, x, y, z); returns radians
+        roll, pitch, yaw = quat2euler([q.w, q.x, q.y, q.z], axes='sxyz')
+
+        self.orientation['yaw']     = math.degrees(yaw) % 360
+        self.orientation['pitch']   = math.degrees(pitch)
+        self.orientation['roll']    = math.degrees(roll)
+
 
     def dvl_callback(self, msg):
         self.dvl_velocity['x'] = msg.twist.linear.x
