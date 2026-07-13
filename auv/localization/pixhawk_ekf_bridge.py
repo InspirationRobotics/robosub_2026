@@ -1,5 +1,40 @@
+#!/usr/bin/env python3
+"""
+pixhawk_ekf_bridge.py
+
+Bridges VectorNav VN-100 orientation and Teledyne DVL velocity into the
+Orange Cube Pixhawk's EKF2 via MAVROS.
+
+EKF2 fuses:
+  - Internal IMU (accel + gyro) for prediction
+  - External attitude from VN-100  → VISION_POSITION_ESTIMATE (attitude only)
+  - External velocity from DVL     → VISION_SPEED_ESTIMATE (body-frame velocity)
+
+Depth does NOT come from the EKF: the Cube's internal baro measures air
+pressure inside the enclosure, so EKF z is meaningless underwater. Instead
+this node decodes SCALED_PRESSURE2 (msgid 143, the external Bar30 water
+pressure sensor) from /mavlink/from, zeroes it at the surface on startup,
+and publishes depth in meters (down-positive) on /auv/state/depth.
+Re-zero anytime with:  rosservice call /auv/services/calibrate/depth
+
+Required ArduSub parameters (set via QGroundControl or MAVProxy):
+  EK2_ENABLE        = 1
+  EK2_GPS_TYPE      = 3   (external vision, no GPS)
+  AHRS_EKF_TYPE     = 2
+  GPS_TYPE          = 0
+
+Published MAVROS topics (consumed by Pixhawk EKF2):
+  /mavros/vision_pose/pose         — VN-100 attitude as external reference
+  /mavros/vision_speed/speed_twist — DVL body-frame velocity
+
+EKF2 output is consumed directly by robot_control.py from:
+  /mavros/local_position/pose      — Pixhawk EKF2 estimated pose (ENU)
+"""
 
 import math
+import time
+from struct import pack, unpack
+
 import rospy
 import numpy as np
 
@@ -7,7 +42,10 @@ from geometry_msgs.msg import (
     PoseStamped, TwistStamped, Vector3Stamped
 )
 from sensor_msgs.msg import Imu
+from std_msgs.msg import Float64
+from std_srvs.srv import Trigger, TriggerResponse
 from nav_msgs.msg import Odometry
+from mavros_msgs.msg import Mavlink
 
 
 class PixhawkEKFBridge:
@@ -20,15 +58,92 @@ class PixhawkEKFBridge:
         self._yaw   = 0.0   # radians, world frame
         self._imu_ready = False
 
-        #publishes position, velocity
-        self._pub_vision_pose  = rospy.Publisher("/mavros/vision_pose/pose", PoseStamped, queue_size=5)
-        self._pub_vision_speed = rospy.Publisher("/mavros/vision_speed/speed_twist", TwistStamped, queue_size=5)
-        rospy.Subscriber("/auv/devices/vectornav", Imu, self._imu_cb, queue_size=1)
-        rospy.Subscriber("/auv/devices/dvl/velocity", TwistStamped, self._dvl_cb, queue_size=10)
-        rospy.loginfo("pixhawk_ekf_bridge: ready — forwarding VN-100 + DVL to EKF2")
+        # Depth from external water pressure sensor (Bar30 via Pixhawk)
+        self._depth_raw   = None   # uncalibrated depth in meters
+        self._depth_calib = 0.0    # surface offset
+        self._depth_calibrated = False
+
+        # Publishers → MAVROS → Pixhawk EKF2
+        self._pub_vision_pose  = rospy.Publisher(
+            "/mavros/vision_pose/pose", PoseStamped, queue_size=5
+        )
+        self._pub_vision_speed = rospy.Publisher(
+            "/mavros/vision_speed/speed_twist", TwistStamped, queue_size=5
+        )
+        self._pub_depth = rospy.Publisher(
+            "/auv/state/depth", Float64, queue_size=5
+        )
+
+        # Subscribers from sensor drivers
+        rospy.Subscriber(
+            "/auv/devices/vectornav", Imu, self._imu_cb, queue_size=10
+        )
+        rospy.Subscriber(
+            "/auv/devices/dvl/velocity", TwistStamped, self._dvl_cb, queue_size=10
+        )
+        rospy.Subscriber(
+            "/mavlink/from", Mavlink, self._mavlink_cb, queue_size=20
+        )
+
+        rospy.Service(
+            "/auv/services/calibrate/depth", Trigger, self._depth_calib_srv
+        )
+
+        # Zero the depth at the surface before reporting anything
+        self._calibrate_depth()
+
+        rospy.loginfo("pixhawk_ekf_bridge: ready — forwarding VN-100 + DVL to EKF")
         rospy.spin()
 
-  #gives attitude 
+    # ------------------------------------------------------------------
+    # Water pressure sensor → /auv/state/depth
+    # ------------------------------------------------------------------
+    def _mavlink_cb(self, msg):
+        # SCALED_PRESSURE2 (msgid 143) carries the external Bar30 water
+        # pressure sensor. press_abs is in hPa; convert to meters of water.
+        try:
+            if msg.msgid == 143:
+                p = pack("QQ", *msg.payload64)
+                _, press_abs, _, _ = unpack("Iffhxx", p)
+                self._depth_raw = press_abs / (997.0474 * 9.80665 * 0.01)
+                if self._depth_calibrated:
+                    self._pub_depth.publish(
+                        Float64(self._depth_raw - self._depth_calib)
+                    )
+        except Exception:
+            pass
+
+    def _calibrate_depth(self, sample_time=3):
+        rospy.loginfo("pixhawk_ekf_bridge: calibrating surface depth...")
+        while self._depth_raw is None and not rospy.is_shutdown():
+            rospy.sleep(0.1)
+
+        samples = []
+        prev = None
+        start = time.time()
+        while time.time() - start < sample_time:
+            if self._depth_raw != prev:
+                samples.append(self._depth_raw)
+                prev = self._depth_raw
+            rospy.sleep(0.02)
+
+        if samples:
+            self._depth_calib = float(np.mean(samples))
+        self._depth_calibrated = True
+        rospy.loginfo(
+            f"pixhawk_ekf_bridge: depth zeroed, surface = {self._depth_calib:.3f} m"
+        )
+
+    def _depth_calib_srv(self, request):
+        self._depth_calibrated = False
+        self._calibrate_depth()
+        return TriggerResponse(
+            success=True, message=f"Depth re-zeroed at {self._depth_calib:.3f}"
+        )
+
+    # ------------------------------------------------------------------
+    # VN-100 IMU callback → VISION_POSITION_ESTIMATE (attitude only)
+    # ------------------------------------------------------------------
     def _imu_cb(self, msg: Imu):
         # vn100_serial.py packs RPY into the orientation quaternion fields
         # as (roll_rad, pitch_rad, yaw_rad, 1.0) — not a real quaternion.
@@ -53,8 +168,9 @@ class PixhawkEKFBridge:
 
         self._pub_vision_pose.publish(pose)
 
-    # vision_speed_estimate of dvl
-  
+    # ------------------------------------------------------------------
+    # DVL callback → VISION_SPEED_ESTIMATE
+    # ------------------------------------------------------------------
     def _dvl_cb(self, msg: TwistStamped):
         # dvl.py already publishes in sub body frame (forward=x, right=y, down=z).
         # MAVROS vision_speed expects velocity in the ENU world frame, so we
@@ -85,6 +201,10 @@ class PixhawkEKFBridge:
 
         self._pub_vision_speed.publish(speed)
 
+
+# ------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------
 
 def _rpy_to_quaternion(roll: float, pitch: float, yaw: float):
     """Convert roll/pitch/yaw (radians) to quaternion (x, y, z, w)."""
