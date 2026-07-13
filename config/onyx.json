@@ -11,17 +11,39 @@
     "polulu_port": "platform-3610000.xhci-usb-0:2.4.2:1.0",
     "ping_port": "platform-3610000.xhci-usb-0:2.1.2:1.0",
     "teensy_port": "platform-3610000.xhci-usb-0:2.2.1:1.0",
-    "vectornav_port" : "platform-3610000.xhci-usb-0:2.2.2:1.0",
+    "vectornav_port": "platform-3610000.xhci-usb-0:2.2.2:1.0",
     "battery_indicator": false,
     "FOG_SCALE_FACTOR": 123.116826,
     "DVL_SCALE_FACTOR": 1.25385,
     "DVL_ORIENTATION_OFFSET": 49.55,
-    "DEPTH_PID_P" : 150,
-    "DEPTH_PID_I" : 20,
-    "DEPTH_PID_D" : 2,
-    "YAW_PID_P" : 10,
-    "YAW_PID_I" : 0.05,
-    "YAW_PID_D" : 0.05,
+    "DEPTH_PID_P": 150,
+    "DEPTH_PID_I": 20,
+    "DEPTH_PID_D": 2,
+    "YAW_PID_P": 10,
+    "YAW_PID_I": 0.05,
+    "YAW_PID_D": 0.05,
     "depth_pid_offset": 1480,
-    "modem_address": "020"
+    "modem_address": "020",
+    "MAG_HARD_IRON": [
+        -0.18349467982164427,
+        0.18422020862839694,
+        0.021065769136806328
+    ],
+    "MAG_SOFT_IRON": [
+        [
+            1.2443171206863628,
+            0.0,
+            0.0
+        ],
+        [
+            0.0,
+            0.819514303069404,
+            0.0
+        ],
+        [
+            0.0,
+            0.0,
+            0.8607305452484175
+        ]
+    ]
 }

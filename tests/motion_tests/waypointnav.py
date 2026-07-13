@@ -18,7 +18,7 @@ rc.go_to_heading(0)
 rospy.loginfo("Reached depth")
 
 # move to differnet waypoints
-rc.waypointNav(0, 0)
+#rc.waypointNav(0, 0)
 rc.waypointNav(2, 0)
 rc.waypointNav(2, 2)
 rc.waypointNav(0, 2)

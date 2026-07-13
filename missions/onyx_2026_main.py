@@ -10,7 +10,7 @@ from auv.mission import poles_mission_right
 from auv.motion import robot_control
 from auv.utils import arm, disarm, deviceHelper
 
-with open("./missions/A7-12.json", "r") as file:
+with open("./missions/waypoints/update_c1_7_13_26.json", "r") as file:
     data = json.load(file)
 
 # Build a dictionary where the keys are the labels (e.g., "G1", "S1")
