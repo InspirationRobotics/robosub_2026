@@ -1,4 +1,4 @@
-# robosub_2025
+# robosub_2026
 
 Team Inspiration's repository for the RoboSub 2026 competition. We are using ROS, python, and C++.
 
