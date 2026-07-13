@@ -99,7 +99,9 @@ class OctagonApproachMission:
                     self.robot_control.set_flight_mode('depth_hold')
                     time.sleep(0.1)
                     print('WE IS GOING FORWARDDDDDDDDDDDDDDDWE IS GOING FORWARDDDDDDDDDDDDDDDWE IS GOING FORWARDDDDDDDDDDDDDDD')
-                    self.robot_control.go_forward_distance(1)
+                    #self.robot_control.go_forward_distance(1)
+                    self.robot_control.set_flight_mode('direct')
+                    self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
                 else:
                     self.robot_control.set_flight_mode("STABILIZE")
                     self.robot_control.movement(lateral = lateral, forward = forward, yaw = yaw, vertical = vertical)
