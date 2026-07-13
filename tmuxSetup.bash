@@ -38,6 +38,7 @@ tmux send-keys -t "win1".3 "python3 -m auv.device.modems.ds_modems_node" C-m
 tmux send-keys -t "win1".4 "python3 -m auv.device.imu.vn100_serial" C-m
 tmux send-keys -t "win1".5 "python3 -m auv.device.dvl.dvl" C-m
 #tmux send-keys -t "win1".6 "python3 -m auv.device.fog.simple_fog" C-m
+tmux send-keys -t "win1".7 "python3 -m auv.localization.pixhawk_ekf_bridge" C-m
 #tmux send-keys -t "win1".7 "python3 -m auv.localization.ekfNode" C-m
 
 
