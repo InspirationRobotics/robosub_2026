@@ -2,6 +2,7 @@
 To create a sequential order of missions for Graey to follow.
 """
 
+import json
 import rospy
 import time
 from auv.utils import deviceHelper
@@ -9,7 +10,7 @@ from auv.utils import deviceHelper
 from auv.motion import robot_control
 from auv.utils import arm, disarm, deviceHelper
 
-with open("./missions/waypoints/C-713", "r") as file:
+with open("./missions/waypoints/C-713_Graey.json", "r") as file:
     data = json.load(file)
 
 # Build a dictionary where the keys are the labels (e.g., "G1", "S1")
