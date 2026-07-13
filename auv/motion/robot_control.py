@@ -292,12 +292,18 @@ class RobotControl:
 
 
                 # minimum of 0.5 pwm for yaw
+                """
                 min_pwm = 0.6
                 if abs(yaw_pwm) < min_pwm:
                     if yaw_pwm < 0:
                         yaw_pwm = -min_pwm
                     elif yaw_pwm >= 0:
                         yaw_pwm = min_pwm
+                """
+                # fixed — deadband boost only when a yaw command actually exists
+                min_pwm = 0.6
+                if yaw_pwm != 0 and abs(yaw_pwm) < min_pwm:
+                    yaw_pwm = math.copysign(min_pwm, yaw_pwm)
 
                 self.__movement(
                     lateral=lateral_pwm,
