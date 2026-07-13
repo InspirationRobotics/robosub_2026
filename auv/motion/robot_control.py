@@ -222,8 +222,8 @@ class RobotControl:
                     "yaw": heading_error(self.orientation['yaw'], self.desired['yaw']),
                 }
 
-                lateral_pwm_world = self.PIDs["lateral"](errors["x"])
-                surge_pwm_world   = self.PIDs["surge"](errors["y"])
+                lateral_pwm_world = self.PIDs["lateral"](-errors["x"])
+                surge_pwm_world   = self.PIDs["surge"](-errors["y"])
 
                 if self.sub == "graey":
                     depth_pwm_world = (self.PIDs['depth'](self.position['z']) * -1) / 80.0
@@ -242,8 +242,8 @@ class RobotControl:
 
                 yaw_pwm = self.PIDs["yaw"](-errors['yaw'] / 180)
                 rospy.loginfo(f"{errors}")
-                rospy.loginfo(f"surge: {-surge_pwm_body}")
-                rospy.loginfo(f"lateral: {-lateral_pwm_body}")
+                rospy.loginfo(f"surge: {surge_pwm_body}")
+                rospy.loginfo(f"lateral: {lateral_pwm_body}")
                 self.__movement(
                     lateral=lateral_pwm_body,
                     forward=surge_pwm_body,
