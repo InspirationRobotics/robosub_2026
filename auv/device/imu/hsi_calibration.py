@@ -13,7 +13,7 @@ applies these values automatically on next startup via Register 44.
 
 Usage:
     python3 hsi_calibration.py
-    python3 hsi_calibration.py --duration 240
+    python3 hsi_calibration.py --port /dev/ttyUSB0 --duration 180 --config config/onyx.json
 
 Physical procedure during collection window:
     1. Two full 360 degree YAW spins (flat/level)
@@ -31,25 +31,21 @@ import time
 import numpy as np
 from serial import Serial
 
-# Load all configuration from the sub's JSON via deviceHelper
+# Try to resolve port and config from the project's deviceHelper
 try:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../"))
     from auv.utils import deviceHelper
-    _port        = deviceHelper.dataFromConfig("vectornav")
-    _sub_name    = deviceHelper.variables.get("sub", "onyx")
-    _config_path = os.path.join(
+    _default_port   = deviceHelper.dataFromConfig("vectornav")
+    _sub_name       = deviceHelper.variables.get("sub", "onyx")
+    _default_config = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         f"../../config/{_sub_name}.json"
     )
-    _async_type  = deviceHelper.variables.get("VN_ASYNC_TYPE", 240)
-    print(f"Loaded config for sub '{_sub_name}'")
-    print(f"  VectorNav port: {_port}")
-    print(f"  Config file:    {_config_path}")
-    print(f"  Async type:     {_async_type}")
-except Exception as e:
-    print(f"ERROR: Could not load device config: {e}", file=sys.stderr)
-    print("Make sure you are running from the robosub_2026 directory.", file=sys.stderr)
-    sys.exit(1)
+    _default_async  = deviceHelper.variables.get("VN_ASYNC_TYPE", 240)
+except Exception:
+    _default_port   = None
+    _default_config = None
+    _default_async  = 240
 
 
 # ---------------------------------------------------------------------------
@@ -328,37 +324,51 @@ def collect_and_calibrate(port: str, duration: int, config_path: str,
 
 def main():
     parser = argparse.ArgumentParser(
-        description="VectorNav VN-100 3D hard/soft iron calibration — port and config from JSON"
+        description="VectorNav VN-100 3D hard/soft iron calibration — saves to JSON config"
+    )
+    parser.add_argument(
+        "--port", type=str, default=_default_port,
+        help="Serial port (e.g. /dev/ttyUSB0). Defaults to project device config."
     )
     parser.add_argument(
         "--duration", type=int, default=180,
         help="Collection time in seconds (default: 180). Rotate the sub during this window."
     )
+    parser.add_argument(
+        "--config", type=str, default=_default_config,
+        help="Path to the sub JSON config to update (e.g. config/onyx.json)."
+    )
+    parser.add_argument(
+        "--async-type", type=int, default=_default_async, dest="async_type",
+        help="VN async output type to restore after calibration (14=VNYMR, 240=VNYBA)."
+    )
     args = parser.parse_args()
 
-    if not _port:
-        print("ERROR: vectornav port not found in device config.", file=sys.stderr)
+    if not args.port:
+        print("ERROR: No port specified. Use --port /dev/ttyUSBx", file=sys.stderr)
         sys.exit(1)
-    if not os.path.exists(_config_path):
-        print(f"ERROR: Config file not found: {_config_path}", file=sys.stderr)
+    if not args.config:
+        print("ERROR: No config path. Use --config config/onyx.json", file=sys.stderr)
+        sys.exit(1)
+    if not os.path.exists(args.config):
+        print(f"ERROR: Config file not found: {args.config}", file=sys.stderr)
         sys.exit(1)
 
-    print()
     print("=" * 55)
     print("VN-100 3D Hard/Soft Iron Calibration")
     print("=" * 55)
-    print(f"  Port:     {_port}")
+    print(f"  Port:     {args.port}")
     print(f"  Duration: {args.duration}s")
-    print(f"  Config:   {_config_path}")
+    print(f"  Config:   {args.config}")
     print()
     print("Make sure the ROS IMU node is STOPPED before continuing.")
     input("Press Enter to begin, Ctrl+C to abort...\n")
 
     success = collect_and_calibrate(
-        port=_port,
+        port=args.port,
         duration=args.duration,
-        config_path=_config_path,
-        original_async=_async_type,
+        config_path=args.config,
+        original_async=args.async_type,
     )
     sys.exit(0 if success else 1)
 
