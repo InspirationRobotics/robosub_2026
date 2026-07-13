@@ -1,0 +1,70 @@
+{
+  "ref_world": [
+    6.323271261305479,
+    0.09821468134333688
+  ],
+  "pool_width": 12.5,
+  "pool_height": 22.86,
+  "grid": 1.0,
+  "waypoints": [
+    {
+      "x": -0.03345719694313942,
+      "y": 6.323410222253382,
+      "label": "G1",
+      "locked": false
+    },
+    {
+      "x": 0.0,
+      "y": 2.8773189371100045,
+      "label": "G2",
+      "locked": false
+    }
+  ],
+  "dividers": [],
+  "bin_obj": null,
+  "gate_obj": {
+    "x": 5.4864,
+    "y": 4.572,
+    "rot": 0.0,
+    "length": 3.048,
+    "sr_side": "end1"
+  },
+  "channel_sets": [
+    {
+      "x": 5.421377828054297,
+      "y": 7.2747432126696845,
+      "rot": 0.0,
+      "spacing": 2.2,
+      "radius": 0.18
+    },
+    {
+      "x": 6.872141402714929,
+      "y": 9.8726221719457,
+      "rot": 0.0,
+      "spacing": 3.0,
+      "radius": 0.18
+    },
+    {
+      "x": 6.028674208144794,
+      "y": 12.369285067873303,
+      "rot": 0.0,
+      "spacing": 3.4,
+      "radius": 0.18
+    }
+  ],
+  "path_markers": [],
+  "torpedo_boards": [],
+  "restore_octagons": [],
+  "fixed_lines": {
+    "black": {
+      "count": 8,
+      "offset": 1.321,
+      "step": 2.7432
+    },
+    "blue": {
+      "count": 15,
+      "offset": 1.85,
+      "step": 2.7432
+    }
+  }
+}
