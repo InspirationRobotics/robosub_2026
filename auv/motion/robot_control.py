@@ -80,7 +80,7 @@ class RobotControl:
         # Establish thruster and depth publishers
         self.sub_pose       = rospy.Subscriber("/auv/state/pose", PoseStamped, self.pose_callback)
         self.dvl_valid      = False
-        self.sub_dvl_valid  = rospy.Subscriber("/auv/devices/dvl/valid", Bool, self.dvl_valid_callback)
+        #self.sub_dvl_valid  = rospy.Subscriber("/auv/devices/dvl/valid", Bool, self.dvl_valid_callback)
         self.sub_dvl        = rospy.Subscriber("/auv/devices/dvl/velocity", TwistStamped, self.dvl_callback)
         self.sub_modem      = rospy.Subscriber("/auv/devices/modem/received", String, self.modem_callback)
         self.pub_thrusters  = rospy.Publisher("/mavros/rc/override", mavros_msgs.msg.OverrideRCIn, queue_size=10)
