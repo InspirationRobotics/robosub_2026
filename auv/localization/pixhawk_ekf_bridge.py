@@ -147,10 +147,11 @@ class PixhawkEKFBridge:
     def _imu_cb(self, msg: Imu):
         # vn100_serial.py packs RPY into the orientation quaternion fields
         # as (roll_rad, pitch_rad, yaw_rad, 1.0) — not a real quaternion.
-        # Extract RPY and build a proper quaternion for MAVROS.
-        self._roll  = msg.orientation.x
-        self._pitch = msg.orientation.y
-        self._yaw   = msg.orientation.z
+        # Extract RPY and build a proper quaternion for MAVROs
+# fixed — convert to radians and remove the 180° pitch mount offset
+        self._roll  = math.radians(msg.orientation.x)
+        self._pitch = math.radians(msg.orientation.y - 180)   # vn100_serial centers level at 180°
+        self._yaw   = math.radians(msg.orientation.z)
         self._imu_ready = True
 
         q = _rpy_to_quaternion(self._roll, self._pitch, self._yaw)
