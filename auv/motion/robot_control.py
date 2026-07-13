@@ -7,7 +7,7 @@ pixhawk flight controller and the software -- that is the job that pixstandalone
 
 # Import the MAVROS message types that are needed
 import rospy
-import std_msgpos
+#import std_msgpos
 from std_msgs.msg import Float64, Float32MultiArray, String, Bool
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PoseStamped
@@ -80,6 +80,7 @@ class RobotControl:
         # Establish thruster and depth publishers
         #self.sub_pose       = rospy.Subscriber("/auv/state/pose", PoseStamped, self.pose_callback)
         self.sub_pose       = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.pose_callback)
+        self.sub_depth      = rospy.Subscriber("/auv/state/depth", Float64, self.depth_callback)
         self.dvl_valid      = False
         #self.sub_dvl_valid  = rospy.Subscriber("/auv/devices/dvl/valid", Bool, self.dvl_valid_callback)
         self.sub_dvl        = rospy.Subscriber("/auv/devices/dvl/velocity", TwistStamped, self.dvl_callback)
@@ -168,7 +169,6 @@ class RobotControl:
         """Callback for Pixhawk EKF2 pose from /mavros/local_position/pose."""
         self.position['x'] = msg.pose.position.x
         self.position['y'] = msg.pose.position.y
-        self.position['z'] = -msg.pose.position.z
 
         q = msg.pose.orientation
         # transforms3d expects (w, x, y, z); returns radians
@@ -177,6 +177,9 @@ class RobotControl:
         self.orientation['yaw']     = math.degrees(yaw) % 360
         self.orientation['pitch']   = math.degrees(pitch)
         self.orientation['roll']    = math.degrees(roll)
+
+    def depth_callback(self, msg):
+        self.position['z'] = msg.data
 
 
     def dvl_callback(self, msg):
