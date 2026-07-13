@@ -477,10 +477,11 @@ class RobotControl:
 
         while (abs(target - self.dvl_sum) > 0.2) and (time.time() - start_time < hard_timeout):
             if not self.dvl_valid:
-                self.movement()  # zero thrust immediately, don't coast on stale command
+                #self.movement()  # zero thrust immediately, don't coast on stale command #NO NO DO IT LATER SINCE RANDOM FALSE POSTIVES JUST STOP MOVEMENT!
                 if invalid_since is None:
                     invalid_since = time.time()
                 elif time.time() - invalid_since > max_invalid_time:
+                    self.movement() #Now we stop it since DVL is clearly not working
                     rospy.logerr("DVL invalid too long, aborting forward move")
                     break
                 time.sleep(dt)
