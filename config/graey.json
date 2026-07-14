@@ -4,7 +4,11 @@
     "bottom_camera_port": "platform-70090000.xusb-usb-0:2.4:1.0",
     "forward_camera_port": "platform-70090000.xusb-usb-0:2.3:1.0",
     "pixhawk_port": "platform-70090000.xusb-usb-0:2.1.4:1.0",
+<<<<<<< HEAD
     "vectornav_port": "platform-70090000.xusb-usb-0:2.2.2:1.0",
+=======
+    "vectornav_port":"platform-70090000.xusb-usb-0:2.2.2:1.0",
+>>>>>>> 5e482389b6f560a31185cdc6101d794bbed2d7e0
     "modem_port": "platform-70090000.xusb-usb-0:2.1.2:1.0",
     "battery_indicator": false,
     "DEPTH_PID_P": 100,
