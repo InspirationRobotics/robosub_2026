@@ -24,13 +24,10 @@ from auv.utils import deviceHelper, disarm
 
 
 rospy.init_node("onyx_intersub_sequence", anonymous=True)
-
 rc = robot_control.RobotControl()
 comms = communication_helper_revised.intersubComMission(robotControl=rc)
-
 config = deviceHelper.variables
 eventflags = [False, False, False, False, False]
-
 GRAEY_ADDR = "010"
 operating_depth = 0.45
 

@@ -31,33 +31,7 @@ except Exception as e:
     rospy.logerr("ERROR DURING GATE INTERSUB MISSION")
     rospy.logerr(e)
 
-"""COINT TOSS + GATE MISSION"""
-try:
-   rc.go_to_heading(gate_heading)
-   rc.activate_heading_control(True)
-   rc.set_absolute_yaw(gate_heading)
-   rospy.loginfo("Robot heading set to gate heading")
-   
-   # set event flag for coin toss mission to True
-   eventflags[0] = True
-   
-   gate_forward_distance = 3 # m
-   rospy.loginfo(f"Start moving forward {gate_forward_distance} m")
-   rc.go_forward_distance(gate_forward_distance)
-   rospy.loginfo(f"Moved {gate_forward_distance} m")
-   
-   print("[INFO] GATE MISSION COMPLETE")
-   # set event flag for gate mission to True
-   eventflags[1] = True
-except KeyboardInterrupt as e:
-   rospy.logwarn("Skipping current mission")
-   eventflags[0] = True
-   eventflags[1] = True
-except Exception as e:
-   rospy.logerr("ERROR OCCUR IN GATE MISSION")
-   rospy.logerr(e)
-   eventflags[0] = True
-   eventflags[1] = True
+3
 
 
 """MODEMS"""

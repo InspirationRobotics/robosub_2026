@@ -65,9 +65,7 @@ try:
     rospy.loginfo("Start of poles mission...")
     navigate_to("S1")
     print("[INFO] POLES MISSION COMPLETE")
-except Exception as e:
-    rospy.logerr("ERROR OCCUR IN POLES MISSION")
-    rospy.logerr(e)
+c
 
 """MODEMS + ROLL"""
 try:

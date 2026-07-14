@@ -263,15 +263,7 @@ class intersubComMission:
         return False
 
     # Receiver-side handshake: wait for a command and answer with its ACK/status.
-    def receive_and_ack(
-        self,
-        expected_msg,
-        reply_addr,
-        reply_msg,
-        wait_timeout=40,
-        ack_count=3,
-        ack_delay=0.5,
-    ):
+    def receive_and_ack(self, expected_msg, reply_addr, reply_msg, wait_timeout=40, ack_count=3, ack_delay=0.5):
         if not self.wait_for_expected_message(expected_msg, timeout=wait_timeout):
             self.log_event(f"Did not receive '{expected_msg}', no reply sent", level="warn")
             return False
@@ -293,16 +285,7 @@ class intersubComMission:
         return True
 
     # Sender-side handshake: retry the command until the receiver confirms it.
-    def send_and_wait_for_ack(
-        self,
-        dest_addr,
-        message,
-        expected_ack,
-        count=20,
-        delay=1,
-        final_timeout=40,
-        settle_delay=2.0,
-    ):
+    def send_and_wait_for_ack(self,dest_addr, message,expected_ack,count=20,delay=1,final_timeout=40,settle_delay=2.0,):
         received = self.send_until_reply(
             dest_addr=dest_addr,
             message=message,

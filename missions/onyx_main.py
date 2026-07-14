@@ -79,7 +79,7 @@ except Exception as e:
     rospy.logerr(e)
 """
 """SLALOM MISSION"""
-# navigate_with_heading("S1")
+#navigate_with_heading("S1")
 """
 try: 
     # Run the poles mission
