@@ -4,38 +4,38 @@
     "bottom_camera_port": "platform-70090000.xusb-usb-0:2.4:1.0",
     "forward_camera_port": "platform-70090000.xusb-usb-0:2.3:1.0",
     "pixhawk_port": "platform-70090000.xusb-usb-0:2.1.4:1.0",
-    "vectornav_port":"platform-70090000.xusb-usb-0:2.1.1:1.0",
+    "vectornav_port": "platform-70090000.xusb-usb-0:2.2.2:1.0",
     "modem_port": "platform-70090000.xusb-usb-0:2.1.2:1.0",
     "battery_indicator": false,
-    "DEPTH_PID_P" : 100,
-    "DEPTH_PID_I" : 10,
-    "DEPTH_PID_D" : 0.75,
-    "YAW_PID_P" : 12,
-    "YAW_PID_I" : 0.01,
-    "YAW_PID_D" : 0.0,
+    "DEPTH_PID_P": 100,
+    "DEPTH_PID_I": 10,
+    "DEPTH_PID_D": 0.75,
+    "YAW_PID_P": 12,
+    "YAW_PID_I": 0.01,
+    "YAW_PID_D": 0.0,
     "DVL_SCALE_FACTOR": 1.15385,
     "depth_pid_offset": 1490,
     "modem_address": "010",
     "MAG_HARD_IRON": [
-     -0.18349467982164427,
-     0.18422020862839694,
-     0.021065769136806328
+        0.03563003233830666,
+        -0.2325432633302063,
+        0.16556725840633807
     ],
     "MAG_SOFT_IRON": [
         [
-            1.2443171206863628,
+            0.9681924282023023,
             0.0,
             0.0
         ],
         [
             0.0,
-            0.819514303069404,
+            1.1315831538455996,
             0.0
         ],
         [
             0.0,
             0.0,
-            0.8607305452484175
+            0.895106227605846
         ]
     ]
 }
