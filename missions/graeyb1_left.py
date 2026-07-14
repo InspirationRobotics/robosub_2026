@@ -33,6 +33,8 @@ def navigate_to(name):
 """INITIALIZE"""
 rospy.init_node("Graey", anonymous = True)
 rc = robot_control.RobotControl()
+print("30 secs to run")
+time.sleep(30)
 rc.set_control_mode('depth_hold')
 rc.set_flight_mode("STABILIZE")
 comms = communication_helper_revised.intersubComMission(robot_control=rc)
@@ -40,8 +42,6 @@ gate_heading = 0 # CALIBRATE EACH TIME
 config = deviceHelper.variables
 ONYX_ADDR = "010"
 
-print("30 secs to run")
-time.sleep(30)
 rc.go_to_depth(1)
 rospy.loginfo("Robot armed and set to depth 1 m")
 
