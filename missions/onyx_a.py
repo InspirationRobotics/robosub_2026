@@ -36,7 +36,7 @@ try:
    rospy.loginfo(f"Start moving forward")
    #comms.send_repeated(dest_addr=GRAEY_ADDR,message="GATE_START",count=5,delay=0.5)
    rc.movement(forward=2)
-   time.sleep(10)
+   time.sleep(12.5)
    rc.movement()
    rospy.loginfo("[INFO] GATE MISSION COMPLETE")
 
@@ -50,7 +50,7 @@ except Exception as e:
 try:
     #comms.send_repeated(dest_addr=GRAEY_ADDR,message="RETURN_START",count=5,delay=0.5)
     rc.movement(forward=-2)
-    time.sleep(10)
+    time.sleep(8.5)
     rc.movement()
     #comms.send_repeated(dest_addr=GRAEY_ADDR,message="RETURN_FINISH",count=5,delay=0.5)
     rospy.loginfo("FINSHED RETURNING HOME")
