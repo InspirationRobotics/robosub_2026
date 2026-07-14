@@ -49,6 +49,7 @@ rospy.loginfo("Robot armed and set to depth 1 m")
 try:
    rc.go_to_heading(gate_heading)
    rc.activate_heading_control(True)
+   comms.rec_callback()
    navigate_to("G1")
    rospy.loginfo("Passed through gate")
    print("[INFO] GATE MISSION COMPLETE")
