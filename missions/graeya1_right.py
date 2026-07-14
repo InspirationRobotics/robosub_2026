@@ -37,7 +37,7 @@ print("30 secs to run")
 time.sleep(30)
 rc.set_control_mode('depth_hold')
 rc.set_flight_mode("STABILIZE")
-comms = communication_helper_revised.intersubComMission(robot_control=rc)
+#comms = communication_helper_revised.intersubComMission(robot_control=rc)
 gate_heading = 0 # CALIBRATE EACH TIME 
 config = deviceHelper.variables
 ONYX_ADDR = "010"
@@ -49,7 +49,6 @@ rospy.loginfo("Robot armed and set to depth 1 m")
 try:
    rc.go_to_heading(gate_heading)
    rc.activate_heading_control(True)
-   comms.rec_callback()
    navigate_to("G1")
    rospy.loginfo("Passed through gate")
    print("[INFO] GATE MISSION COMPLETE")
