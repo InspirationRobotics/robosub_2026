@@ -51,9 +51,17 @@ except Exception as e:
    rospy.logerr("ERROR OCCUR IN GATE MISSION")
    rospy.logerr(e)
 
+"""RETURN HOME + MAKE SPACE FOR ONYX"""
+try:
+    navigate_to("G2")
+    rc.go_lateral_distance(1)
+except Exception as e:
+    rospy.logerr("ERROR OCCUR DURING ROLL MANEUVER")
+    rospy.logerr(e)
+
 """ROLL MANEUVER"""
 try:
-    rc.go_to_depth(0.4)
+    #rc.go_to_depth(0.4)
     rospy.loginfo("Performing roll")
     rc.set_flight_mode("ACRO")
     rc.set_control_mode("direct")
@@ -69,13 +77,6 @@ except Exception as e:
     rospy.logerr("ERROR OCCUR DURING ROLL MANEUVER")
     rospy.logerr(e)
 
-"""RETURN HOME + MAKE SPACE FOR ONYX"""
-try:
-    navigate_to("G2")
-    rc.go_lateral_distance(1)
-except Exception as e:
-    rospy.logerr("ERROR OCCUR DURING ROLL MANEUVER")
-    rospy.logerr(e)
 
 disarm.disarm()
 rc.exit()
