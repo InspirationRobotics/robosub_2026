@@ -10,11 +10,11 @@ from auv.motion import robot_control
 from auv.utils import arm, disarm, deviceHelper
 
 """INITIALIZE"""
-rospy.init_node("Onyx", anonymous = True)
-rc = robot_control.RobotControl()
-
 print("30 seconds")
 time.sleep(30)
+
+rospy.init_node("Onyx", anonymous = True)
+rc = robot_control.RobotControl()
 rc.set_control_mode('depth_hold')
 rc.set_flight_mode("STABILIZE")
 rc.go_to_depth(1)
@@ -36,7 +36,7 @@ try:
    rospy.loginfo(f"Start moving forward")
    #comms.send_repeated(dest_addr=GRAEY_ADDR,message="GATE_START",count=5,delay=0.5)
    rc.movement(forward=2)
-   time.sleep(12.5)
+   time.sleep(17)
    rc.movement()
    rospy.loginfo("[INFO] GATE MISSION COMPLETE")
 
@@ -50,7 +50,7 @@ except Exception as e:
 try:
     #comms.send_repeated(dest_addr=GRAEY_ADDR,message="RETURN_START",count=5,delay=0.5)
     rc.movement(forward=-2)
-    time.sleep(8.5)
+    time.sleep(12)
     rc.movement()
     #comms.send_repeated(dest_addr=GRAEY_ADDR,message="RETURN_FINISH",count=5,delay=0.5)
     rospy.loginfo("FINSHED RETURNING HOME")
