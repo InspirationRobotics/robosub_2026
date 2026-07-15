@@ -11,7 +11,7 @@ from auv.motion import robot_control
 from auv.mission import communication_helper_revised
 from auv.utils import arm, disarm, deviceHelper
 
-with open("./missions/waypoints/c1_left.json", "r") as file:
+with open("./missions/waypoints/c1_right.json", "r") as file:
     data = json.load(file)
 
 # Build a dictionary where the keys are the labels (e.g., "G1", "S1")
