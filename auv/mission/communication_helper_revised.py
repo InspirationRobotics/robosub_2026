@@ -303,6 +303,24 @@ class intersubComMission:
 
         return received
 
+def listen_for_modem():
+    """Background thread that listens for modem messages continuously"""
+    global last_received_msg
+    
+    rospy.loginfo("[GRAEY MODEM LISTENER] Started listening for Onyx messages...")
+    print("[TERMINAL] Graey is now listening for Onyx messages...")
+    
+    while not rospy.is_shutdown():
+        try:
+            msg = rc.get_latest_modem()
+            if msg and msg != last_received_msg:  # Only print new messages
+                last_received_msg = msg
+                rospy.loginfo(f"[GRAEY RECEIVED] {msg}")
+                print(f"\n🔔 [TERMINAL ALERT] Graey received from Onyx: {msg}\n")
+        except Exception as e:
+            rospy.logerr(f"Error in modem listener: {e}")
+        
+        time.sleep(0.5)  # Check every 500ms
 
 if __name__ == "__main__":
     from auv.motion.robot_control import RobotControl
