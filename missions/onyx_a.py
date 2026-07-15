@@ -34,33 +34,33 @@ try:
    rospy.loginfo("Robot heading set to gate heading")
    
    rospy.loginfo(f"Start moving forward")
-   #comms.send_repeated(dest_addr=GRAEY_ADDR,message="GATE_START",count=5,delay=0.5)
+   comms.send_repeated(dest_addr=GRAEY_ADDR,message="GATE_START",count=5,delay=0.5)
    rc.movement(forward=2)
    time.sleep(17)
    rc.movement()
    rospy.loginfo("[INFO] GATE MISSION COMPLETE")
 
    #send message to Graey that gate mission is complete
-   #comms.send_repeated(dest_addr=GRAEY_ADDR,message="GATE_FINISH",count=5,delay=0.5)
+   comms.send_repeated(dest_addr=GRAEY_ADDR,message="GATE_FINISH",count=5,delay=0.5)
 except Exception as e:
     rospy.logerr("ERROR DOING GATE MISSION")
     rospy.logerr(e)
 
 # back through the gate
 try:
-    #comms.send_repeated(dest_addr=GRAEY_ADDR,message="RETURN_START",count=5,delay=0.5)
+    comms.send_repeated(dest_addr=GRAEY_ADDR,message="RETURN_START",count=5,delay=0.5)
     rc.movement(forward=-2)
     time.sleep(12)
     rc.movement()
-    #comms.send_repeated(dest_addr=GRAEY_ADDR,message="RETURN_FINISH",count=5,delay=0.5)
+    comms.send_repeated(dest_addr=GRAEY_ADDR,message="RETURN_FINISH",count=5,delay=0.5)
     rospy.loginfo("FINSHED RETURNING HOME")
 except Exception as e:
     rospy.logerr("ERROR OCCUR IN RETURNING HOME")
     rospy.logerr(e)
 
 try:
-    #comms.send_repeated(dest_addr=GRAEY_ADDR,message="ROLL_START",count=5,delay=0.5)
-    #rc.go_to_depth(0.7)
+    comms.send_repeated(dest_addr=GRAEY_ADDR,message="ROLL_START",count=5,delay=0.5)
+    rc.go_to_depth(0.7)
     rospy.loginfo("Performing roll")
     rc.set_flight_mode("ACRO")
     rc.set_control_mode("direct")
@@ -72,13 +72,13 @@ try:
 
     rc.set_flight_mode("STABILIZE")
     rc.set_control_mode("depth_hold")
-    #comms.send_repeated(dest_addr=GRAEY_ADDR,message="ROLL_END",count=5,delay=0.5)
+    comms.send_repeated(dest_addr=GRAEY_ADDR,message="ROLL_END",count=5,delay=0.5)
     rospy.loginfo("FINSHED STYLE")
 except Exception as e:
     rospy.logerr("ERROR OCCUR DURING STYLE")
     rospy.logerr(e)
 
-#comms.send_repeated(dest_addr=GRAEY_ADDR,message="ONYX_ENDING_RUN",count=5,delay=0.5)
+comms.send_repeated(dest_addr=GRAEY_ADDR,message="ONYX_ENDING_RUN",count=5,delay=0.5)
 print("[INFO] Mission run terminate")
 disarm.disarm()
 rc.exit()
