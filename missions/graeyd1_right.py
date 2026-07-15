@@ -38,7 +38,7 @@ rc.set_control_mode('depth_hold')
 rc.set_flight_mode("STABILIZE")
 comms = communication_helper_revised.intersubComMission(robotControl=rc)
 gate_heading = 0 # CALIBRATE EACH TIME 
-right_heading = 135
+right_heading = -45
 config = deviceHelper.variables
 ONYX_ADDR = "020"
 
