@@ -33,7 +33,7 @@ class OctagonApproachMission:
         self.robot_control = robot_control.RobotControl()
         self.cv_handler = cv_handler.CVHandler(**self.config)
         self.robot_control.set_flight_mode("STABILIZE")
-        self.robot_control.go_to_depth(0.45)
+        self.robot_control.go_to_depth(1)
         time.sleep(5)
         
         # Initialize the CV handlers; dummys are used to input a video file instead of the camera stream as data for the CV script to run on
@@ -114,9 +114,11 @@ class OctagonApproachMission:
         for i in range(2):
             if i == False:
                 self.robot_control.go_to_depth(0.0)
+                time.sleep(5)
             elif i == True:
                 self.robot_control.go_to_depth(0.7)
-            time.sleep(7)
+                time.sleep(1)
+            
         
         print("[INFO] Octagon approach mission terminated")
         print('3 sec sleep')
