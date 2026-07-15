@@ -37,7 +37,7 @@ print("30 secs to run")
 time.sleep(30)
 rc.set_control_mode('depth_hold')
 rc.set_flight_mode("STABILIZE")
-#comms = communication_helper_revised.intersubComMission(robot_control=rc)
+comms = communication_helper_revised.intersubComMission(robotControl=rc)
 gate_heading = 0 # CALIBRATE EACH TIME 
 config = deviceHelper.variables
 ONYX_ADDR = "010"
@@ -51,7 +51,9 @@ try:
    rc.activate_heading_control(True)
    comms.rec_callback()
    navigate_to("G1")
+   comms.send_repeated(dest_addr=GRAEY_ADDR,message="GATE_START",count=5,delay=0.5)
    rospy.loginfo("Passed through gate")
+   comms.send_repeated(dest_addr=GRAEY_ADDR,message="GATE_FINISH",count=5,delay=0.5)
    print("[INFO] GATE MISSION COMPLETE")
 except Exception as e:
    rospy.logerr("ERROR OCCUR IN GATE MISSION")
@@ -60,9 +62,11 @@ except Exception as e:
 """SLALOM MISSION"""
 try:
     rospy.loginfo("Slalom Mission")
+    comms.send_repeated(dest_addr=GRAEY_ADDR,message="SLALOM_START",count=5,delay=0.5)
     navigate_to("S1")
     navigate_to("S2")
     navigate_to("S3")
+    comms.send_repeated(dest_addr=GRAEY_ADDR,message="SLALOM_FINISH",count=5,delay=0.5)
     #navigate_to("S4")
     rospy.loginfo("SLALOM MISSION FINISHED")
 except Exception as e:
@@ -72,10 +76,12 @@ except Exception as e:
 """OCTAGON MISSION"""
 try:
     rospy.loginfo("Octagon Mission")
+    comms.send_repeated(dest_addr=GRAEY_ADDR,message="OCTAGON_START",count=5,delay=0.5)
     navigate_to("O1")
     navigate_to("O2")
     rc.go_to_depth(0.1)
     time.sleep(3)
+    comms.send_repeated(dest_addr=GRAEY_ADDR,message="OCTAGON_FINISH",count=5,delay=0.5)
     rc.go_to_depth(0.8)
     rospy.loginfo("OCTAGON MISSION FINISHED")
 except Exception as e:
@@ -85,8 +91,10 @@ except Exception as e:
 """RETURN HOME MISSION"""
 try:
     rospy.loginfo("Return Home Mission")
+    comms.send_repeated(dest_addr=GRAEY_ADDR,message="RETURN_START",count=5,delay=0.5)
     navigate_to("R1")
     navigate_to("R2")
+    comms.send_repeated(dest_addr=GRAEY_ADDR,message="RETURN_FINISH",count=5,delay=0.5)
     rospy.loginfo("RETURN HOME MISSION FINISHED")
 except Exception as e:
     rospy.logerr("ERROR DOING RETURN HOME MISSION")
