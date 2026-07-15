@@ -29,8 +29,7 @@ class BinsDropMission:
         self.received = False
         self.robot_control = robot_control.RobotControl()
         self.heading = self.robot_control.get_heading
-
-        self.robot_control.set_flight_mode("STABLIZE")
+        self.robot_control.set_flight_mode("STABILIZE")
         self.robot_control.set_control_mode('depth_hold')
 
         self.robot_control.go_to_depth(0.4) #change later for comp (0.2 is for house pool)
