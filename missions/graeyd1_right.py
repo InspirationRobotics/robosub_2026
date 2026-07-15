@@ -38,6 +38,7 @@ rc.set_control_mode('depth_hold')
 rc.set_flight_mode("STABILIZE")
 comms = communication_helper_revised.intersubComMission(robotControl=rc)
 gate_heading = 0 # CALIBRATE EACH TIME 
+right_heading = 135
 config = deviceHelper.variables
 ONYX_ADDR = "020"
 
@@ -78,6 +79,7 @@ try:
     comms.send_repeated(dest_addr=ONYX_ADDR,message="OCTAGON_START",count=5,delay=0.5)
     navigate_to("O1")
     #navigate_to("O2")
+    rc.go_to_heading(right_heading)
     rc.go_to_depth(0.1)
     time.sleep(3)
     comms.send_repeated(dest_addr=ONYX_ADDR,message="OCTAGON_FINISH",count=5,delay=0.5)
