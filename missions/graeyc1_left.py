@@ -17,6 +17,11 @@ with open("./missions/waypoints/c1_left.json", "r") as file:
 # Build a dictionary where the keys are the labels (e.g., "G1", "S1")
 waypoint_dict = {wp["label"]: wp for wp in data["waypoints"]}
 
+# Start the listening thread
+listener_thread = threading.Thread(target=communication_helper_revised.listen_for_modem, daemon=True)
+listener_thread.start()
+
+rospy.loginfo("Modem listener thread started")
 def navigate_to(name):
     if name in waypoint_dict:
         # Grab the specific waypoint object using its name
