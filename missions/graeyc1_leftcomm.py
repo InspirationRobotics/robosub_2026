@@ -11,7 +11,7 @@ from auv.motion import robot_control
 from auv.mission import communication_helper_revised
 from auv.utils import arm, disarm, deviceHelper
 
-with open("./missions/waypoints/c1_left.json", "r") as file:
+with open("./missions/waypoints/20left.json", "r") as file:
     data = json.load(file)
 
 # Build a dictionary where the keys are the labels (e.g., "G1", "S1")
@@ -29,18 +29,17 @@ def navigate_to(name):
         # Prevents a crash if you misspell a waypoint name
         rospy.logwarn(f"ERROR: Waypoint '{name}' not found in the JSON!")
         raise ValueError(f"Missing waypoint: {name}")
-    
+print("30 secs to run")
+time.sleep(30)    
 """INITIALIZE"""
 rospy.init_node("Graey", anonymous = True)
 rc = robot_control.RobotControl()
-print("30 secs to run")
-time.sleep(30)
 rc.set_control_mode('depth_hold')
 rc.set_flight_mode("STABILIZE")
 comms = communication_helper_revised.intersubComMission(robotControl=rc)
 gate_heading = 0 # CALIBRATE EACH TIME 
 config = deviceHelper.variables
-ONYX_ADDR = "010"
+ONYX_ADDR = "020"
 
 rc.go_to_depth(1)
 rospy.loginfo("Robot armed and set to depth 1 m")
