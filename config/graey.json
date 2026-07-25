@@ -15,7 +15,7 @@
     "YAW_PID_D" : 0.0,
     "DVL_SCALE_FACTOR": 1.15385,
     "depth_pid_offset": 1490,
-    "modem_address": "010"
+    "modem_address": "010",
     "MAG_HARD_IRON": [
      -0.18349467982164427,
      0.18422020862839694,
